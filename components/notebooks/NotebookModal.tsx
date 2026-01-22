@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
-import { Notebook, PageTemplate } from "@/types/notebook";
+import { Notebook, PageTemplate, Page } from "@/types/notebook";
 import { NotebookCanvas } from "./NotebookCanvas";
 import { NotebookToolbar } from "./NotebookToolbar";
 
@@ -20,22 +20,54 @@ export function NotebookModal({ notebook, onClose, onDelete }: NotebookModalProp
   const [template, setTemplate] = useState<PageTemplate>(
     notebook.pages[currentPageIndex]?.template || "ruled"
   );
-  const [pages, setPages] = useState(notebook.pages);
+  const [pages, setPages] = useState<Page[]>([]);
+
+  // Load pages from localStorage on mount
+  useEffect(() => {
+    const storageKey = `notebook-${notebook.id}-pages`;
+    const savedPages = localStorage.getItem(storageKey);
+    
+    if (savedPages) {
+      try {
+        const parsedPages = JSON.parse(savedPages) as Page[];
+        setPages(parsedPages);
+        setTemplate(parsedPages[0]?.template || "ruled");
+      } catch {
+        // If parsing fails, use default pages
+        setPages(notebook.pages);
+      }
+    } else {
+      // Use initial pages from notebook
+      setPages(notebook.pages);
+    }
+  }, [notebook]);
+
+  // Save pages to localStorage whenever they change
+  useEffect(() => {
+    if (pages.length > 0) {
+      const storageKey = `notebook-${notebook.id}-pages`;
+      localStorage.setItem(storageKey, JSON.stringify(pages));
+    }
+  }, [pages, notebook.id]);
 
   const currentPage = pages[currentPageIndex];
   const totalPages = pages.length;
 
   const handleContentChange = (content: string) => {
-    // In a real app, this would save to state/backend
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _content = content;
-    console.log("Content changed for page", currentPage.pageNumber);
+    // Update the content of the current page
+    const updatedPages = pages.map((page, index) =>
+      index === currentPageIndex ? { ...page, content } : page
+    );
+    setPages(updatedPages);
   };
 
   const handleClearPage = () => {
     if (confirm("Are you sure you want to clear this page?")) {
-      // In a real app, this would clear the page content
-      window.location.reload(); // Simple reload for now
+      // Clear the content of the current page
+      const updatedPages = pages.map((page, index) =>
+        index === currentPageIndex ? { ...page, content: "" } : page
+      );
+      setPages(updatedPages);
     }
   };
 

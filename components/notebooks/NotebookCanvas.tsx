@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { PageTemplate } from "@/types/notebook";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { PageTemplate, Stroke, Point } from "@/types/notebook";
 
 interface NotebookCanvasProps {
   content?: string;
@@ -23,48 +23,25 @@ export function NotebookCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
 
-  // Initialize canvas
+  // Load content when it changes (e.g., when switching pages)
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    setContext(ctx);
-
-    // Set canvas size to A4 proportions (210mm x 297mm = 1:1.414)
-    const containerWidth = canvas.parentElement?.clientWidth || 800;
-    const canvasWidth = Math.min(containerWidth - 32, 800);
-    const canvasHeight = canvasWidth * 1.414; // A4 aspect ratio
-
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-
-    // Fill white background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw template background
-    if (template === "ruled") {
-      drawRuled(ctx, canvas.width, canvas.height);
-    } else if (template === "grid") {
-      drawGrid(ctx, canvas.width, canvas.height);
-    }
-    // Blank template has no background lines
-
-    // Load existing content if available
     if (content) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = content;
+      try {
+        const loadedStrokes = JSON.parse(content) as Stroke[];
+        setStrokes(loadedStrokes);
+      } catch {
+        // If content is not valid JSON, ignore it (might be old format)
+        setStrokes([]);
+      }
+    } else {
+      setStrokes([]);
     }
-  }, [content, template]);
+  }, [content]);
 
-  const drawRuled = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawRuled = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
 
@@ -76,9 +53,9 @@ export function NotebookCanvas({
       ctx.lineTo(width, y);
       ctx.stroke();
     }
-  };
+  }, []);
 
-  const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawGrid = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
 
@@ -99,12 +76,90 @@ export function NotebookCanvas({
       ctx.lineTo(width, y);
       ctx.stroke();
     }
+  }, []);
+
+  const drawStroke = useCallback((ctx: CanvasRenderingContext2D, stroke: Stroke) => {
+    if (stroke.points.length === 0) return;
+
+    // Save context state
+    ctx.save();
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = stroke.alpha;
+    ctx.strokeStyle = stroke.color;
+    ctx.lineWidth = stroke.width;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    
+    for (let i = 1; i < stroke.points.length; i++) {
+      ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+    }
+    
+    ctx.stroke();
+
+    // Restore context state
+    ctx.restore();
+  }, []);
+
+  const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    // Fill white background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw template background
+    if (template === "ruled") {
+      drawRuled(ctx, width, height);
+    } else if (template === "grid") {
+      drawGrid(ctx, width, height);
+    }
+    // Blank template has no background lines
+
+    // Redraw all strokes
+    strokes.forEach((stroke) => {
+      drawStroke(ctx, stroke);
+    });
+  }, [template, strokes, drawRuled, drawGrid, drawStroke]);
+
+  // Initialize canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    setContext(ctx);
+
+    // Set canvas size to A4 proportions (210mm x 297mm = 1:1.414)
+    const containerWidth = canvas.parentElement?.clientWidth || 800;
+    const canvasWidth = Math.min(containerWidth - 32, 800);
+    const canvasHeight = canvasWidth * 1.414; // A4 aspect ratio
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // Redraw all strokes
+    redrawCanvas(ctx, canvas.width, canvas.height);
+  }, [template, strokes, redrawCanvas]);
+
+  const isPointNearStroke = (point: Point, stroke: Stroke, threshold: number = 10): boolean => {
+    // Check if any point in the stroke is within the threshold distance
+    for (const strokePoint of stroke.points) {
+      const distance = Math.sqrt(
+        (point.x - strokePoint.x) ** 2 + (point.y - strokePoint.y) ** 2
+      );
+      if (distance <= threshold) {
+        return true;
+      }
+    }
+    return false;
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!context || !canvasRef.current) return;
-
-    setIsDrawing(true);
 
     const rect = canvasRef.current.getBoundingClientRect();
     let x: number, y: number;
@@ -117,12 +172,35 @@ export function NotebookCanvas({
       y = e.clientY - rect.top;
     }
 
-    context.beginPath();
-    context.moveTo(x, y);
+    const point: Point = { x, y };
+
+    if (tool === "eraser") {
+      // Find and remove strokes that are near this point
+      const threshold = strokeWidth * 2;
+      const remainingStrokes = strokes.filter(
+        (stroke) => !isPointNearStroke(point, stroke, threshold)
+      );
+      
+      if (remainingStrokes.length !== strokes.length) {
+        setStrokes(remainingStrokes);
+      }
+    } else {
+      // Start a new stroke
+      setIsDrawing(true);
+      const alpha = tool === "highlighter" ? 0.3 : 1.0;
+      const newStroke: Stroke = {
+        points: [point],
+        tool,
+        color,
+        width: strokeWidth,
+        alpha,
+      };
+      setCurrentStroke(newStroke);
+    }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !context || !canvasRef.current) return;
+    if (!context || !canvasRef.current) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     let x: number, y: number;
@@ -136,39 +214,61 @@ export function NotebookCanvas({
       y = e.clientY - rect.top;
     }
 
-    // Set drawing properties based on tool
+    const point: Point = { x, y };
+
     if (tool === "eraser") {
-      context.globalCompositeOperation = "destination-out";
-      context.lineWidth = strokeWidth * 2; // Eraser is wider
-    } else {
-      context.globalCompositeOperation = "source-over";
-      context.lineWidth = strokeWidth;
+      // Eraser removes strokes on mouse/touch move
+      const threshold = strokeWidth * 2;
+      const remainingStrokes = strokes.filter(
+        (stroke) => !isPointNearStroke(point, stroke, threshold)
+      );
       
-      if (tool === "highlighter") {
-        context.globalAlpha = 0.3;
-        context.strokeStyle = color;
-      } else {
-        context.globalAlpha = 1.0;
-        context.strokeStyle = color;
+      if (remainingStrokes.length !== strokes.length) {
+        setStrokes(remainingStrokes);
+      }
+    } else {
+      // Continue drawing the current stroke
+      if (!isDrawing || !currentStroke) return;
+
+      const updatedStroke = {
+        ...currentStroke,
+        points: [...currentStroke.points, point],
+      };
+      setCurrentStroke(updatedStroke);
+
+      // Draw the stroke segment immediately for visual feedback
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        redrawCanvas(context, canvas.width, canvas.height);
+        drawStroke(context, updatedStroke);
       }
     }
-
-    context.lineCap = "round";
-    context.lineJoin = "round";
-
-    context.lineTo(x, y);
-    context.stroke();
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
+    if (!isDrawing && tool !== "eraser") return;
 
-    setIsDrawing(false);
+    if (tool !== "eraser") {
+      setIsDrawing(false);
 
-    // Save canvas content
-    if (canvasRef.current && onContentChange) {
-      const dataUrl = canvasRef.current.toDataURL("image/png");
-      onContentChange(dataUrl);
+      // Add the completed stroke to strokes array
+      if (currentStroke && currentStroke.points.length > 0) {
+        const updatedStrokes = [...strokes, currentStroke];
+        setStrokes(updatedStrokes);
+        setCurrentStroke(null);
+
+        // Save strokes as JSON
+        if (onContentChange) {
+          const contentJson = JSON.stringify(updatedStrokes);
+          onContentChange(contentJson);
+        }
+      }
+    } else {
+      // For eraser, save the updated strokes
+      if (onContentChange) {
+        const contentJson = JSON.stringify(strokes);
+        onContentChange(contentJson);
+      }
     }
   };
 
