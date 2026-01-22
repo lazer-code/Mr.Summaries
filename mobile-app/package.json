@@ -8,8 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "type-check": "tsc --noEmit",
-    "export:android": "expo export --platform android",
-    "export:ios": "expo export --platform ios"
+    "export:android": "npx expo export --platform android",
+    "export:ios": "npx expo export --platform ios"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

@@ -24,8 +24,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
     iconContainer: {
       position: 'absolute',
       left: spacing.md,
-      top: '50%',
-      transform: [{ translateY: -10 }],
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
       zIndex: 1,
     },
     icon: {

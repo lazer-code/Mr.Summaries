@@ -22,7 +22,17 @@ const SummariesScreen: React.FC = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [summaries, setSummaries] = useState<Summary[]>(getSummaries());
 
-  const filteredSummaries = getSummaries(searchTerm);
+  const filteredSummaries = summaries.filter(
+    (summary) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        summary.courseNumber.toLowerCase().includes(term) ||
+        summary.courseName.toLowerCase().includes(term) ||
+        summary.title.toLowerCase().includes(term) ||
+        summary.author.toLowerCase().includes(term)
+      );
+    }
+  );
 
   const handleUpload = (data: SummaryFormData) => {
     const newSummary: Summary = {

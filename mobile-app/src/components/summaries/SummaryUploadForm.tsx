@@ -23,6 +23,7 @@ const SummaryUploadForm: React.FC<SummaryUploadFormProps> = ({ onClose, onSubmit
 
   const handleSubmit = () => {
     if (!formData.courseNumber || !formData.courseName || !formData.title || !formData.author || !formData.content) {
+      // TODO: Replace with proper toast notification or inline error message
       alert('Please fill in all fields');
       return;
     }

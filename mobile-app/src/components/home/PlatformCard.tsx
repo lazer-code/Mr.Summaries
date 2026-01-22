@@ -13,7 +13,8 @@ interface PlatformCardProps {
   comingSoon?: boolean;
 }
 
-// Simple icon component using text
+// Simple icon component using text emojis
+// TODO: Replace with @expo/vector-icons or react-native-vector-icons for better consistency
 const Icon: React.FC<{ name: IconName; color: string }> = ({ name, color }) => {
   const iconMap: Record<IconName, string> = {
     'book-open': '📖',
