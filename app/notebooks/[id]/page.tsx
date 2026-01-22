@@ -200,10 +200,13 @@ export default function NotebookFullPage() {
     <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Slim Top Bar - Hidden by default, shown on touch */}
       <div 
-        className={`flex items-center justify-between border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 transition-all duration-300 ${
-          showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full absolute'
+        className={`flex items-center justify-between border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 transition-all duration-300 ease-in-out ${
+          showHeader ? 'relative opacity-100 translate-y-0' : 'absolute -top-full opacity-0 pointer-events-none'
         }`}
-        style={{ zIndex: showHeader ? 10 : -1 }}
+        style={{ 
+          zIndex: showHeader ? 10 : -1,
+          width: '100%'
+        }}
       >
         <Link
           href="/notebooks"
