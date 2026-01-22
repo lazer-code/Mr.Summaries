@@ -89,7 +89,14 @@ export default function CalendarPage() {
     if (!editingTask) return;
     setTasks(tasks.map(task => 
       task.id === editingTask.id 
-        ? { ...task, ...data }
+        ? { 
+            ...task, 
+            ...data,
+            // Preserve immutable fields
+            id: task.id,
+            completed: task.completed,
+            createdAt: task.createdAt
+          }
         : task
     ));
     setEditingTask(null);
@@ -99,7 +106,13 @@ export default function CalendarPage() {
     if (!editingEvent) return;
     setEvents(events.map(event => 
       event.id === editingEvent.id 
-        ? { ...event, ...data }
+        ? { 
+            ...event, 
+            ...data,
+            // Preserve immutable fields
+            id: event.id,
+            createdAt: event.createdAt
+          }
         : event
     ));
     setEditingEvent(null);
