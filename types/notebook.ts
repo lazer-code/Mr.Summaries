@@ -1,5 +1,18 @@
 export type PageTemplate = "blank" | "grid" | "ruled";
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Stroke {
+  points: Point[];
+  tool: "pen" | "eraser" | "highlighter";
+  color: string;
+  width: number;
+  alpha: number;
+}
+
 export interface Page {
   id: string;
   pageNumber: number;
