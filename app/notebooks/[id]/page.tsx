@@ -25,6 +25,9 @@ export default function NotebookFullPage() {
   const [showHeader, setShowHeader] = useState(false);
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastPinchDistanceRef = useRef<number | null>(null);
+  
+  // Pinch-to-zoom sensitivity constant
+  const PINCH_ZOOM_SENSITIVITY = 0.5;
 
   // Load pages from localStorage on mount
   useEffect(() => {
@@ -200,6 +203,7 @@ export default function NotebookFullPage() {
   const handleTouchStart = (e: React.TouchEvent) => {
     // Handle pinch-to-zoom with two fingers
     if (e.touches.length === 2) {
+      e.preventDefault(); // Prevent default browser zoom behavior
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -213,6 +217,7 @@ export default function NotebookFullPage() {
   const handleTouchMove = (e: React.TouchEvent) => {
     // Handle pinch-to-zoom with two fingers
     if (e.touches.length === 2 && lastPinchDistanceRef.current !== null) {
+      e.preventDefault(); // Prevent default browser zoom behavior
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -221,7 +226,7 @@ export default function NotebookFullPage() {
       );
       
       const delta = distance - lastPinchDistanceRef.current;
-      const zoomDelta = delta * 0.5; // Adjust sensitivity
+      const zoomDelta = delta * PINCH_ZOOM_SENSITIVITY;
       
       setZoom(prev => Math.min(Math.max(prev + zoomDelta, 50), 300));
       lastPinchDistanceRef.current = distance;
