@@ -4,36 +4,16 @@ import { Notebook } from "@/types/notebook";
 import { formatTimeAgo } from "@/lib/utils";
 import { Clock, User, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
 
 interface NotebookBlockProps {
   notebook: Notebook;
-  onClick: () => void;
 }
 
-export function NotebookBlock({ notebook, onClick }: NotebookBlockProps) {
+export function NotebookBlock({ notebook }: NotebookBlockProps) {
   const router = useRouter();
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clickCountRef = useRef(0);
 
   const handleClick = () => {
-    clickCountRef.current += 1;
-
-    if (clickCountRef.current === 1) {
-      // First click - wait to see if there's a second click
-      clickTimeoutRef.current = setTimeout(() => {
-        // Single click - open modal
-        onClick();
-        clickCountRef.current = 0;
-      }, 300); // 300ms delay to detect double click
-    } else if (clickCountRef.current === 2) {
-      // Double click - navigate to full page
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-      }
-      clickCountRef.current = 0;
-      router.push(`/notebooks/${notebook.id}`);
-    }
+    router.push(`/notebooks/${notebook.id}`);
   };
 
   return (

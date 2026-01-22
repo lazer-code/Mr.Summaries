@@ -5,14 +5,12 @@ import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
 import { SearchBar } from "@/components/summaries/SearchBar";
 import { NotebookBlock } from "@/components/notebooks/NotebookBlock";
-import { NotebookModal } from "@/components/notebooks/NotebookModal";
 import { NotebookCreateForm } from "@/components/notebooks/NotebookCreateForm";
 import { Notebook, NotebookFormData } from "@/types/notebook";
 import { getNotebooks } from "@/lib/mock-notebooks";
 
 export default function NotebooksPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [notebooks, setNotebooks] = useState<Notebook[]>(getNotebooks());
 
@@ -37,15 +35,6 @@ export default function NotebooksPage() {
     };
     setNotebooks([newNotebook, ...notebooks]);
     setShowCreateForm(false);
-  };
-
-  const handleDeleteNotebook = (id: string) => {
-    if (confirm("Are you sure you want to delete this notebook? This action cannot be undone.")) {
-      setNotebooks(notebooks.filter(notebook => notebook.id !== id));
-      if (selectedNotebook && selectedNotebook.id === id) {
-        setSelectedNotebook(null);
-      }
-    }
   };
 
   return (
@@ -107,7 +96,6 @@ export default function NotebooksPage() {
               <NotebookBlock
                 key={notebook.id}
                 notebook={notebook}
-                onClick={() => setSelectedNotebook(notebook)}
               />
             ))}
           </div>
@@ -126,14 +114,6 @@ export default function NotebooksPage() {
       </div>
 
       {/* Modals */}
-      {selectedNotebook && (
-        <NotebookModal
-          notebook={selectedNotebook}
-          onClose={() => setSelectedNotebook(null)}
-          onDelete={handleDeleteNotebook}
-        />
-      )}
-
       {showCreateForm && (
         <NotebookCreateForm
           onClose={() => setShowCreateForm(false)}

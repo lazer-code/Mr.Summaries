@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Clock, User } from "lucide-react";
@@ -21,6 +21,9 @@ export default function NotebookFullPage() {
   const [strokeWidth, setStrokeWidth] = useState(4);
   const [template, setTemplate] = useState<PageTemplate>("ruled");
   const [pages, setPages] = useState<Page[]>([]);
+  const [zoom, setZoom] = useState(100);
+  const [showHeader, setShowHeader] = useState(false);
+  const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load pages from localStorage on mount
   useEffect(() => {
@@ -49,6 +52,15 @@ export default function NotebookFullPage() {
       localStorage.setItem(storageKey, JSON.stringify(pages));
     }
   }, [pages, notebookId]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (headerTimeoutRef.current) {
+        clearTimeout(headerTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!notebook) {
     return (
@@ -148,10 +160,55 @@ export default function NotebookFullPage() {
     setPages(updatedPages);
   };
 
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 25, 200));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 25, 50));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(100);
+  };
+
+  const handleCanvasTouchStart = (e: React.TouchEvent) => {
+    // Handle touch events to toggle header visibility
+    // Note: TouchEvent fires for any touch input (finger or stylus on some devices)
+    if (e.touches.length > 0) {
+      // Toggle header visibility
+      if (showHeader) {
+        setShowHeader(false);
+        if (headerTimeoutRef.current) {
+          clearTimeout(headerTimeoutRef.current);
+          headerTimeoutRef.current = null;
+        }
+      } else {
+        setShowHeader(true);
+        // Set timeout to hide after 5 seconds
+        if (headerTimeoutRef.current) {
+          clearTimeout(headerTimeoutRef.current);
+        }
+        headerTimeoutRef.current = setTimeout(() => {
+          setShowHeader(false);
+          headerTimeoutRef.current = null;
+        }, 5000);
+      }
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Slim Top Bar */}
-      <div className="flex items-center justify-between border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
+      {/* Slim Top Bar - Hidden by default, shown on touch */}
+      <div 
+        className={`flex items-center justify-between border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 transition-all duration-300 ease-in-out ${
+          showHeader ? 'relative opacity-100 translate-y-0' : 'absolute -top-full opacity-0 pointer-events-none'
+        }`}
+        style={{ 
+          zIndex: showHeader ? 10 : -1,
+          width: '100%'
+        }}
+      >
         <Link
           href="/notebooks"
           className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400"
@@ -181,7 +238,7 @@ export default function NotebookFullPage() {
         </div>
       </div>
 
-      {/* Horizontal Toolbar */}
+      {/* Horizontal Toolbar - Always visible */}
       <div className="border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
         <div className="mx-auto max-w-7xl">
           <NotebookToolbar
@@ -200,12 +257,19 @@ export default function NotebookFullPage() {
             onTemplateChange={handleTemplateChange}
             onAddPage={handleAddPage}
             onRemovePage={handleRemovePage}
+            zoom={zoom}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomReset={handleZoomReset}
           />
         </div>
       </div>
 
       {/* Fullscreen Canvas Area */}
-      <div className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
+      <div 
+        className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900"
+        onTouchStart={handleCanvasTouchStart}
+      >
         <NotebookCanvas
           content={currentPage?.content}
           onContentChange={handleContentChange}
@@ -213,6 +277,7 @@ export default function NotebookFullPage() {
           color={color}
           strokeWidth={strokeWidth}
           template={template}
+          zoom={zoom}
         />
       </div>
     </div>
