@@ -2,25 +2,26 @@
 
 import { useState } from "react";
 import { X, MapPin, Clock, Calendar } from "lucide-react";
-import { EventFormData } from "@/types/event";
+import { CalendarEvent, EventFormData } from "@/types/event";
 
 interface EventFormProps {
   onClose: () => void;
   onSubmit: (data: EventFormData) => void;
   initialDate?: Date;
+  initialEvent?: CalendarEvent;
 }
 
-export function EventForm({ onClose, onSubmit, initialDate }: EventFormProps) {
+export function EventForm({ onClose, onSubmit, initialDate, initialEvent }: EventFormProps) {
   const [formData, setFormData] = useState<EventFormData>({
-    title: "",
-    description: "",
-    startDate: initialDate || new Date(),
-    endDate: initialDate || new Date(),
-    startTime: "",
-    endTime: "",
-    location: "",
-    type: "event",
-    color: "#3b82f6",
+    title: initialEvent?.title || "",
+    description: initialEvent?.description || "",
+    startDate: initialEvent?.startDate || initialDate || new Date(),
+    endDate: initialEvent?.endDate || initialDate || new Date(),
+    startTime: initialEvent?.startTime || "",
+    endTime: initialEvent?.endTime || "",
+    location: initialEvent?.location || "",
+    type: initialEvent?.type || "event",
+    color: initialEvent?.color || "#3b82f6",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,7 +71,7 @@ export function EventForm({ onClose, onSubmit, initialDate }: EventFormProps) {
         <div className="border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Create New Event
+              {initialEvent ? "Edit Event" : "Create New Event"}
             </h2>
             <button
               onClick={onClose}
@@ -294,7 +295,7 @@ export function EventForm({ onClose, onSubmit, initialDate }: EventFormProps) {
               type="submit"
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
-              Create Event
+              {initialEvent ? "Save Changes" : "Create Event"}
             </button>
           </div>
         </form>

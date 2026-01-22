@@ -20,6 +20,8 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [filterCompleted, setFilterCompleted] = useState<"all" | "active" | "completed">("all");
   const [viewMode, setViewMode] = useState<"all" | "tasks" | "events">("all");
 
@@ -81,6 +83,26 @@ export default function CalendarPage() {
         task.id === id ? { ...task, completed: !task.completed } : task
       )
     );
+  };
+
+  const handleUpdateTask = (data: TaskFormData) => {
+    if (!editingTask) return;
+    setTasks(tasks.map(task => 
+      task.id === editingTask.id 
+        ? { ...task, ...data }
+        : task
+    ));
+    setEditingTask(null);
+  };
+
+  const handleUpdateEvent = (data: EventFormData) => {
+    if (!editingEvent) return;
+    setEvents(events.map(event => 
+      event.id === editingEvent.id 
+        ? { ...event, ...data }
+        : event
+    ));
+    setEditingEvent(null);
   };
 
   // Get events for selected date or all events
@@ -328,7 +350,7 @@ export default function CalendarPage() {
                     <TaskCard
                       key={task.id}
                       task={task}
-                      onClick={() => {}}
+                      onClick={() => setEditingTask(task)}
                       onToggleComplete={handleToggleComplete}
                     />
                   ))}
@@ -343,7 +365,7 @@ export default function CalendarPage() {
                     <EventCard
                       key={event.id}
                       event={event}
-                      onClick={() => {}}
+                      onClick={() => setEditingEvent(event)}
                     />
                   ))}
                 </>
@@ -364,21 +386,29 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Task Form Modal */}
-      {showTaskForm && (
+      {/* Task Form Modal - for both create and edit */}
+      {(showTaskForm || editingTask) && (
         <TaskForm
-          onClose={() => setShowTaskForm(false)}
-          onSubmit={handleCreateTask}
+          onClose={() => {
+            setShowTaskForm(false);
+            setEditingTask(null);
+          }}
+          onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
           initialDate={selectedDate || undefined}
+          initialTask={editingTask || undefined}
         />
       )}
 
-      {/* Event Form Modal */}
-      {showEventForm && (
+      {/* Event Form Modal - for both create and edit */}
+      {(showEventForm || editingEvent) && (
         <EventForm
-          onClose={() => setShowEventForm(false)}
-          onSubmit={handleCreateEvent}
+          onClose={() => {
+            setShowEventForm(false);
+            setEditingEvent(null);
+          }}
+          onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
           initialDate={selectedDate || undefined}
+          initialEvent={editingEvent || undefined}
         />
       )}
     </div>
