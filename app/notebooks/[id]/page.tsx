@@ -24,6 +24,7 @@ export default function NotebookFullPage() {
   const [zoom, setZoom] = useState(100);
   const [showHeader, setShowHeader] = useState(false);
   const headerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPinchDistanceRef = useRef<number | null>(null);
 
   // Load pages from localStorage on mount
   useEffect(() => {
@@ -161,7 +162,7 @@ export default function NotebookFullPage() {
   };
 
   const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 25, 200));
+    setZoom(prev => Math.min(prev + 25, 300));
   };
 
   const handleZoomOut = () => {
@@ -172,10 +173,9 @@ export default function NotebookFullPage() {
     setZoom(100);
   };
 
-  const handleCanvasTouchStart = (e: React.TouchEvent) => {
-    // Handle touch events to toggle header visibility
-    // Note: TouchEvent fires for any touch input (finger or stylus on some devices)
-    if (e.touches.length > 0) {
+  const handleCanvasPointerDown = (e: React.PointerEvent) => {
+    // Only toggle header on FINGER touch, not stylus
+    if (e.pointerType === 'touch') {
       // Toggle header visibility
       if (showHeader) {
         setShowHeader(false);
@@ -195,6 +195,42 @@ export default function NotebookFullPage() {
         }, 5000);
       }
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Handle pinch-to-zoom with two fingers
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      lastPinchDistanceRef.current = distance;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Handle pinch-to-zoom with two fingers
+    if (e.touches.length === 2 && lastPinchDistanceRef.current !== null) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      const delta = distance - lastPinchDistanceRef.current;
+      const zoomDelta = delta * 0.5; // Adjust sensitivity
+      
+      setZoom(prev => Math.min(Math.max(prev + zoomDelta, 50), 300));
+      lastPinchDistanceRef.current = distance;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    // Reset pinch distance
+    lastPinchDistanceRef.current = null;
   };
 
   return (
@@ -268,7 +304,10 @@ export default function NotebookFullPage() {
       {/* Fullscreen Canvas Area */}
       <div 
         className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900"
-        onTouchStart={handleCanvasTouchStart}
+        onPointerDown={handleCanvasPointerDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <NotebookCanvas
           content={currentPage?.content}
