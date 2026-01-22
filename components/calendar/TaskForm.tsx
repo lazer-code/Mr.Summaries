@@ -2,23 +2,24 @@
 
 import { useState } from "react";
 import { X, MapPin, Clock } from "lucide-react";
-import { TaskFormData } from "@/types/task";
+import { Task, TaskFormData } from "@/types/task";
 
 interface TaskFormProps {
   onClose: () => void;
   onSubmit: (data: TaskFormData) => void;
   initialDate?: Date;
+  initialTask?: Task;
 }
 
-export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
+export function TaskForm({ onClose, onSubmit, initialDate, initialTask }: TaskFormProps) {
   const [formData, setFormData] = useState<TaskFormData>({
-    title: "",
-    description: "",
-    dueDate: initialDate || new Date(),
-    dueTime: "",
-    location: "",
-    priority: "medium",
-    category: "",
+    title: initialTask?.title || "",
+    description: initialTask?.description || "",
+    dueDate: initialTask?.dueDate || initialDate || new Date(),
+    dueTime: initialTask?.dueTime || "",
+    location: initialTask?.location || "",
+    priority: initialTask?.priority || "medium",
+    category: initialTask?.category || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,7 +61,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
         <div className="border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Create New Task
+              {initialTask ? "Edit Task" : "Create New Task"}
             </h2>
             <button
               onClick={onClose}
@@ -235,7 +236,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
               type="submit"
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
-              Create Task
+              {initialTask ? "Save Changes" : "Create Task"}
             </button>
           </div>
         </form>
