@@ -239,7 +239,7 @@ export function NotebookCanvas({
     const point: Point = { x, y };
 
     if (tool === "eraser") {
-      // Eraser removes strokes on pointer move
+      // Eraser removes strokes on stylus/mouse pointer move
       const threshold = strokeWidth * 2;
       const remainingStrokes = strokes.filter(
         (stroke) => !isPointNearStroke(point, stroke, threshold)

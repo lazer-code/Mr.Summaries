@@ -138,7 +138,7 @@ export function NotebookToolbar({
           max="20"
           value={strokeWidth}
           onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
-          className="h-2 w-24 cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+          className="h-2 w-24 cursor-pointer rounded-lg"
           style={{
             background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((strokeWidth - 1) / 19) * 100}%, #e5e7eb ${((strokeWidth - 1) / 19) * 100}%, #e5e7eb 100%)`
           }}

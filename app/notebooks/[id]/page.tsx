@@ -173,7 +173,8 @@ export default function NotebookFullPage() {
   };
 
   const handleCanvasTouchStart = (e: React.TouchEvent) => {
-    // Only handle finger touches (not stylus)
+    // Handle touch events to toggle header visibility
+    // Note: TouchEvent fires for any touch input (finger or stylus on some devices)
     if (e.touches.length > 0) {
       // Toggle header visibility
       if (showHeader) {
