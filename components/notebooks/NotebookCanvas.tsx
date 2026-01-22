@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PageTemplate } from "@/types/notebook";
 
 interface NotebookCanvasProps {
   content?: string;
@@ -8,7 +9,7 @@ interface NotebookCanvasProps {
   tool: "pen" | "eraser" | "highlighter";
   color: string;
   strokeWidth: number;
-  showGrid?: boolean;
+  template?: PageTemplate;
 }
 
 export function NotebookCanvas({
@@ -17,7 +18,7 @@ export function NotebookCanvas({
   tool,
   color,
   strokeWidth,
-  showGrid = false,
+  template = "ruled",
 }: NotebookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -45,10 +46,13 @@ export function NotebookCanvas({
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid if enabled
-    if (showGrid) {
+    // Draw template background
+    if (template === "ruled") {
+      drawRuled(ctx, canvas.width, canvas.height);
+    } else if (template === "grid") {
       drawGrid(ctx, canvas.width, canvas.height);
     }
+    // Blank template has no background lines
 
     // Load existing content if available
     if (content) {
@@ -58,15 +62,38 @@ export function NotebookCanvas({
       };
       img.src = content;
     }
-  }, [content, showGrid]);
+  }, [content, template]);
 
-  const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawRuled = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
 
     // Draw horizontal lines (lined paper effect)
     const lineSpacing = 30;
     for (let y = lineSpacing; y < height; y += lineSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+  };
+
+  const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 1;
+
+    const gridSpacing = 30;
+
+    // Draw vertical lines
+    for (let x = gridSpacing; x < width; x += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    // Draw horizontal lines
+    for (let y = gridSpacing; y < height; y += gridSpacing) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);

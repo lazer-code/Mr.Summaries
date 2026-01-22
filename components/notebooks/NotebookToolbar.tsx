@@ -1,6 +1,7 @@
 "use client";
 
-import { Pen, Eraser, Highlighter, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pen, Eraser, Highlighter, Trash2, ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
+import { PageTemplate } from "@/types/notebook";
 
 interface NotebookToolbarProps {
   tool: "pen" | "eraser" | "highlighter";
@@ -14,8 +15,10 @@ interface NotebookToolbarProps {
   totalPages: number;
   onPreviousPage: () => void;
   onNextPage: () => void;
-  showGrid: boolean;
-  onShowGridChange: (show: boolean) => void;
+  template: PageTemplate;
+  onTemplateChange: (template: PageTemplate) => void;
+  onAddPage?: () => void;
+  onRemovePage?: () => void;
 }
 
 const COLORS = [
@@ -45,8 +48,10 @@ export function NotebookToolbar({
   totalPages,
   onPreviousPage,
   onNextPage,
-  showGrid,
-  onShowGridChange,
+  template,
+  onTemplateChange,
+  onAddPage,
+  onRemovePage,
 }: NotebookToolbarProps) {
   return (
     <div className="space-y-4">
@@ -136,19 +141,43 @@ export function NotebookToolbar({
         </div>
       </div>
 
-      {/* Grid Toggle */}
+      {/* Page Template */}
       <div className="rounded-xl border-2 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <label className="flex cursor-pointer items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Show Grid
-          </span>
-          <input
-            type="checkbox"
-            checked={showGrid}
-            onChange={(e) => onShowGridChange(e.target.checked)}
-            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-          />
-        </label>
+        <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Page Template
+        </h3>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => onTemplateChange("blank")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              template === "blank"
+                ? "bg-blue-600 text-white dark:bg-blue-500"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            Blank
+          </button>
+          <button
+            onClick={() => onTemplateChange("ruled")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              template === "ruled"
+                ? "bg-blue-600 text-white dark:bg-blue-500"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            Ruled
+          </button>
+          <button
+            onClick={() => onTemplateChange("grid")}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              template === "grid"
+                ? "bg-blue-600 text-white dark:bg-blue-500"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            Grid
+          </button>
+        </div>
       </div>
 
       {/* Page Navigation */}
@@ -159,7 +188,7 @@ export function NotebookToolbar({
         <div className="mb-2 text-center text-sm text-gray-600 dark:text-gray-400">
           Page {currentPage} of {totalPages}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-3">
           <button
             onClick={onPreviousPage}
             disabled={currentPage === 1}
@@ -177,6 +206,31 @@ export function NotebookToolbar({
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
+        
+        {/* Page Management Buttons */}
+        {(onAddPage || onRemovePage) && (
+          <div className="flex gap-2">
+            {onAddPage && (
+              <button
+                onClick={onAddPage}
+                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
+            )}
+            {onRemovePage && (
+              <button
+                onClick={onRemovePage}
+                disabled={totalPages <= 1}
+                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+              >
+                <Minus className="h-4 w-4" />
+                Remove
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Clear Page */}

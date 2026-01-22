@@ -1,25 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
-import { Notebook } from "@/types/notebook";
+import { X, Trash2 } from "lucide-react";
+import { Notebook, PageTemplate } from "@/types/notebook";
 import { NotebookCanvas } from "./NotebookCanvas";
 import { NotebookToolbar } from "./NotebookToolbar";
 
 interface NotebookModalProps {
   notebook: Notebook;
   onClose: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export function NotebookModal({ notebook, onClose }: NotebookModalProps) {
+export function NotebookModal({ notebook, onClose, onDelete }: NotebookModalProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [tool, setTool] = useState<"pen" | "eraser" | "highlighter">("pen");
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(4);
-  const [showGrid, setShowGrid] = useState(false);
+  const [template, setTemplate] = useState<PageTemplate>(
+    notebook.pages[currentPageIndex]?.template || "ruled"
+  );
+  const [pages, setPages] = useState(notebook.pages);
 
-  const currentPage = notebook.pages[currentPageIndex];
-  const totalPages = notebook.pages.length;
+  const currentPage = pages[currentPageIndex];
+  const totalPages = pages.length;
 
   const handleContentChange = (content: string) => {
     // In a real app, this would save to state/backend
@@ -38,13 +42,62 @@ export function NotebookModal({ notebook, onClose }: NotebookModalProps) {
   const handlePreviousPage = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
+      setTemplate(pages[currentPageIndex - 1]?.template || "ruled");
     }
   };
 
   const handleNextPage = () => {
     if (currentPageIndex < totalPages - 1) {
       setCurrentPageIndex(currentPageIndex + 1);
+      setTemplate(pages[currentPageIndex + 1]?.template || "ruled");
     }
+  };
+
+  const handleAddPage = () => {
+    const newPage = {
+      id: `${Date.now()}-${pages.length + 1}`,
+      pageNumber: pages.length + 1,
+      content: "",
+      template: "ruled" as PageTemplate,
+    };
+    setPages([...pages, newPage]);
+  };
+
+  const handleRemovePage = () => {
+    if (pages.length <= 1) return;
+    
+    if (confirm("Are you sure you want to remove this page?")) {
+      const newPages = pages.filter((_, index) => index !== currentPageIndex);
+      // Renumber pages
+      const renumberedPages = newPages.map((page, index) => ({
+        ...page,
+        pageNumber: index + 1,
+      }));
+      setPages(renumberedPages);
+      
+      // Adjust current page index
+      if (currentPageIndex >= renumberedPages.length) {
+        setCurrentPageIndex(renumberedPages.length - 1);
+      }
+      if (renumberedPages[currentPageIndex]) {
+        setTemplate(renumberedPages[currentPageIndex]?.template || "ruled");
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(notebook.id);
+    }
+  };
+
+  const handleTemplateChange = (newTemplate: PageTemplate) => {
+    setTemplate(newTemplate);
+    // Update the page template
+    const updatedPages = pages.map((page, index) =>
+      index === currentPageIndex ? { ...page, template: newTemplate } : page
+    );
+    setPages(updatedPages);
   };
 
   return (
@@ -70,13 +123,24 @@ export function NotebookModal({ notebook, onClose }: NotebookModalProps) {
                 {notebook.title}
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              {onDelete && (
+                <button
+                  onClick={handleDelete}
+                  className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+                  title="Delete notebook"
+                >
+                  <Trash2 className="h-6 w-6" />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                aria-label="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -90,7 +154,7 @@ export function NotebookModal({ notebook, onClose }: NotebookModalProps) {
               tool={tool}
               color={color}
               strokeWidth={strokeWidth}
-              showGrid={showGrid}
+              template={template}
             />
           </div>
 
@@ -108,8 +172,10 @@ export function NotebookModal({ notebook, onClose }: NotebookModalProps) {
               totalPages={totalPages}
               onPreviousPage={handlePreviousPage}
               onNextPage={handleNextPage}
-              showGrid={showGrid}
-              onShowGridChange={setShowGrid}
+              template={template}
+              onTemplateChange={handleTemplateChange}
+              onAddPage={handleAddPage}
+              onRemovePage={handleRemovePage}
             />
           </div>
         </div>

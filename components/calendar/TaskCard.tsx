@@ -2,16 +2,17 @@
 
 import { Task } from "@/types/task";
 import { formatDate } from "@/lib/calendar-utils";
-import { CheckCircle2, Circle, Clock, AlertCircle, MapPin } from "lucide-react";
+import { CheckCircle2, Circle, Clock, AlertCircle, MapPin, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
   onClick: () => void;
   onToggleComplete?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function TaskCard({ task, onClick, onToggleComplete }: TaskCardProps) {
+export function TaskCard({ task, onClick, onToggleComplete, onDelete }: TaskCardProps) {
   const isOverdue = !task.completed && new Date(task.dueDate) < new Date();
   const isToday = new Date(task.dueDate).toDateString() === new Date().toDateString();
 
@@ -25,6 +26,13 @@ export function TaskCard({ task, onClick, onToggleComplete }: TaskCardProps) {
     e.stopPropagation();
     if (onToggleComplete) {
       onToggleComplete(task.id);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(task.id);
     }
   };
 
@@ -117,6 +125,17 @@ export function TaskCard({ task, onClick, onToggleComplete }: TaskCardProps) {
             )}
           </div>
         </div>
+
+        {/* Delete Button */}
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="flex-shrink-0 rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+            title="Delete task"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
