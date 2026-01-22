@@ -49,6 +49,8 @@ export default function NotebookFullPage() {
 
   const handleContentChange = (content: string) => {
     // In a real app, this would save to state/backend
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _content = content;
     console.log("Content changed for page", currentPage.pageNumber);
   };
 
