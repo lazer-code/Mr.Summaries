@@ -81,6 +81,9 @@ export function NotebookCanvas({
   const drawStroke = useCallback((ctx: CanvasRenderingContext2D, stroke: Stroke) => {
     if (stroke.points.length === 0) return;
 
+    // Save context state
+    ctx.save();
+
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = stroke.alpha;
     ctx.strokeStyle = stroke.color;
@@ -96,6 +99,9 @@ export function NotebookCanvas({
     }
     
     ctx.stroke();
+
+    // Restore context state
+    ctx.restore();
   }, []);
 
   const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -143,7 +149,7 @@ export function NotebookCanvas({
     // Check if any point in the stroke is within the threshold distance
     for (const strokePoint of stroke.points) {
       const distance = Math.sqrt(
-        Math.pow(point.x - strokePoint.x, 2) + Math.pow(point.y - strokePoint.y, 2)
+        (point.x - strokePoint.x) ** 2 + (point.y - strokePoint.y) ** 2
       );
       if (distance <= threshold) {
         return true;
@@ -211,9 +217,7 @@ export function NotebookCanvas({
     const point: Point = { x, y };
 
     if (tool === "eraser") {
-      // Continue erasing strokes
-      if (isDrawing) return; // Not in drawing mode for eraser
-      
+      // Eraser removes strokes on mouse/touch move
       const threshold = strokeWidth * 2;
       const remainingStrokes = strokes.filter(
         (stroke) => !isPointNearStroke(point, stroke, threshold)
