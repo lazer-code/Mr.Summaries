@@ -39,6 +39,15 @@ export default function NotebooksPage() {
     setShowCreateForm(false);
   };
 
+  const handleDeleteNotebook = (id: string) => {
+    if (confirm("Are you sure you want to delete this notebook? This action cannot be undone.")) {
+      setNotebooks(notebooks.filter(notebook => notebook.id !== id));
+      if (selectedNotebook && selectedNotebook.id === id) {
+        setSelectedNotebook(null);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -121,6 +130,7 @@ export default function NotebooksPage() {
         <NotebookModal
           notebook={selectedNotebook}
           onClose={() => setSelectedNotebook(null)}
+          onDelete={handleDeleteNotebook}
         />
       )}
 

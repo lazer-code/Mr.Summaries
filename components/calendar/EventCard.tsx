@@ -2,15 +2,16 @@
 
 import { CalendarEvent } from "@/types/event";
 import { formatDate } from "@/lib/calendar-utils";
-import { Clock, MapPin, Calendar } from "lucide-react";
+import { Clock, MapPin, Calendar, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   event: CalendarEvent;
   onClick: () => void;
+  onDelete?: (id: string) => void;
 }
 
-export function EventCard({ event, onClick }: EventCardProps) {
+export function EventCard({ event, onClick, onDelete }: EventCardProps) {
   const isPast = new Date(event.endDate) < new Date();
   const isToday = 
     new Date(event.startDate).toDateString() === new Date().toDateString() ||
@@ -47,6 +48,13 @@ export function EventCard({ event, onClick }: EventCardProps) {
       return startStr;
     }
     return `${startStr} - ${endStr}`;
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(event.id);
+    }
   };
 
   return (
@@ -110,6 +118,17 @@ export function EventCard({ event, onClick }: EventCardProps) {
             </span>
           </div>
         </div>
+
+        {/* Delete Button */}
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            className="flex-shrink-0 rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
+            title="Delete event"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );

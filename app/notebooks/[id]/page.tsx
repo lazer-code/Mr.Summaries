@@ -8,6 +8,7 @@ import { getNotebookById } from "@/lib/mock-notebooks";
 import { NotebookCanvas } from "@/components/notebooks/NotebookCanvas";
 import { NotebookToolbar } from "@/components/notebooks/NotebookToolbar";
 import { formatTimeAgo } from "@/lib/utils";
+import { PageTemplate } from "@/types/notebook";
 
 export default function NotebookFullPage() {
   const params = useParams();
@@ -18,7 +19,8 @@ export default function NotebookFullPage() {
   const [tool, setTool] = useState<"pen" | "eraser" | "highlighter">("pen");
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(4);
-  const [showGrid, setShowGrid] = useState(false);
+  const [template, setTemplate] = useState<PageTemplate>("ruled");
+  const [pages, setPages] = useState(notebook?.pages || []);
 
   if (!notebook) {
     return (
@@ -44,8 +46,8 @@ export default function NotebookFullPage() {
     );
   }
 
-  const currentPage = notebook.pages[currentPageIndex];
-  const totalPages = notebook.pages.length;
+  const currentPage = pages[currentPageIndex];
+  const totalPages = pages.length;
 
   const handleContentChange = (content: string) => {
     // In a real app, this would save to state/backend
@@ -64,13 +66,54 @@ export default function NotebookFullPage() {
   const handlePreviousPage = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
+      setTemplate(pages[currentPageIndex - 1]?.template || "ruled");
     }
   };
 
   const handleNextPage = () => {
     if (currentPageIndex < totalPages - 1) {
       setCurrentPageIndex(currentPageIndex + 1);
+      setTemplate(pages[currentPageIndex + 1]?.template || "ruled");
     }
+  };
+
+  const handleAddPage = () => {
+    const newPage = {
+      id: `${Date.now()}-${pages.length + 1}`,
+      pageNumber: pages.length + 1,
+      content: "",
+      template: "ruled" as PageTemplate,
+    };
+    setPages([...pages, newPage]);
+  };
+
+  const handleRemovePage = () => {
+    if (pages.length <= 1) return;
+    
+    if (confirm("Are you sure you want to remove this page?")) {
+      const newPages = pages.filter((_, index) => index !== currentPageIndex);
+      // Renumber pages
+      const renumberedPages = newPages.map((page, index) => ({
+        ...page,
+        pageNumber: index + 1,
+      }));
+      setPages(renumberedPages);
+      
+      // Adjust current page index
+      if (currentPageIndex >= renumberedPages.length) {
+        setCurrentPageIndex(renumberedPages.length - 1);
+      }
+      setTemplate(renumberedPages[Math.min(currentPageIndex, renumberedPages.length - 1)]?.template || "ruled");
+    }
+  };
+
+  const handleTemplateChange = (newTemplate: PageTemplate) => {
+    setTemplate(newTemplate);
+    // Update the page template
+    const updatedPages = pages.map((page, index) =>
+      index === currentPageIndex ? { ...page, template: newTemplate } : page
+    );
+    setPages(updatedPages);
   };
 
   return (
@@ -117,7 +160,7 @@ export default function NotebookFullPage() {
               tool={tool}
               color={color}
               strokeWidth={strokeWidth}
-              showGrid={showGrid}
+              template={template}
             />
           </div>
 
@@ -135,8 +178,10 @@ export default function NotebookFullPage() {
               totalPages={totalPages}
               onPreviousPage={handlePreviousPage}
               onNextPage={handleNextPage}
-              showGrid={showGrid}
-              onShowGridChange={setShowGrid}
+              template={template}
+              onTemplateChange={handleTemplateChange}
+              onAddPage={handleAddPage}
+              onRemovePage={handleRemovePage}
             />
           </div>
         </div>

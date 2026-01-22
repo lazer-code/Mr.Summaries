@@ -118,6 +118,18 @@ export default function CalendarPage() {
     setEditingEvent(null);
   };
 
+  const handleDeleteTask = (id: string) => {
+    if (confirm("Are you sure you want to delete this task?")) {
+      setTasks(tasks.filter(task => task.id !== id));
+    }
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    if (confirm("Are you sure you want to delete this event?")) {
+      setEvents(events.filter(event => event.id !== id));
+    }
+  };
+
   // Get events for selected date or all events
   const getEventsForDate = (date: Date) => {
     return events.filter((event) => {
@@ -365,6 +377,7 @@ export default function CalendarPage() {
                       task={task}
                       onClick={() => setEditingTask(task)}
                       onToggleComplete={handleToggleComplete}
+                      onDelete={handleDeleteTask}
                     />
                   ))}
                 </>
@@ -379,6 +392,7 @@ export default function CalendarPage() {
                       key={event.id}
                       event={event}
                       onClick={() => setEditingEvent(event)}
+                      onDelete={handleDeleteEvent}
                     />
                   ))}
                 </>
