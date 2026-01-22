@@ -30,6 +30,7 @@ export function NotebookCanvas({
   const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
+  const [panningPointerId, setPanningPointerId] = useState<number | null>(null);
 
   // Load content when it changes (e.g., when switching pages)
   useEffect(() => {
@@ -173,12 +174,17 @@ export function NotebookCanvas({
 
     if (isFinger) {
       // Finger touch starts panning
+      e.currentTarget.setPointerCapture(e.pointerId);
       setIsPanning(true);
       setPanStart({ x: e.clientX, y: e.clientY });
+      setPanningPointerId(e.pointerId);
       return;
     }
 
     if (!isStylus && !isMouse) return;
+
+    // Capture pointer for stylus/mouse to prevent scrolling
+    e.currentTarget.setPointerCapture(e.pointerId);
 
     const rect = canvasRef.current.getBoundingClientRect();
     const scale = zoom / 100;
@@ -219,8 +225,8 @@ export function NotebookCanvas({
     const isMouse = e.pointerType === 'mouse';
     const isFinger = e.pointerType === 'touch';
 
-    // Handle panning with finger
-    if (isFinger && isPanning && containerRef.current) {
+    // Handle panning with finger - only if this is the finger that started panning
+    if (isFinger && isPanning && panningPointerId === e.pointerId && containerRef.current) {
       const deltaX = e.clientX - panStart.x;
       const deltaY = e.clientY - panStart.y;
       containerRef.current.scrollLeft -= deltaX;
@@ -229,6 +235,7 @@ export function NotebookCanvas({
       return;
     }
 
+    // Only stylus and mouse should draw
     if (!isStylus && !isMouse) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
@@ -267,8 +274,15 @@ export function NotebookCanvas({
     }
   };
 
-  const stopDrawing = () => {
-    setIsPanning(false);
+  const stopDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Release pointer capture
+    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    // Only reset panning state if this was the finger that started it
+    if (isPanning && panningPointerId === e.pointerId) {
+      setIsPanning(false);
+      setPanningPointerId(null);
+    }
 
     if (!isDrawing && tool !== "eraser") return;
 
@@ -310,6 +324,7 @@ export function NotebookCanvas({
         style={{
           transform: `scale(${zoom / 100})`,
           transformOrigin: 'top left',
+          touchAction: 'none',
         }}
         className="cursor-crosshair rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-600"
       />
