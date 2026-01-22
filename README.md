@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mr.Summaries
 
-## Getting Started
+An academic knowledge platform for managing summaries, notebooks, and tasks.
 
-First, run the development server:
+## Project Structure
 
+This repository contains two applications:
+
+### Web Application (Next.js)
+The original web application built with Next.js, React, and Tailwind CSS.
+
+**Location**: Root directory
+
+**Tech Stack**:
+- Next.js 14
+- React 18
+- TypeScript
+- Tailwind CSS
+- KaTeX for LaTeX rendering
+- Zustand for state management
+
+**Getting Started**:
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Mobile Application (React Native)
+A React Native mobile application targeting Android, converted from the web application.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Location**: `mobile-app/` directory
+
+**Tech Stack**:
+- React Native with Expo
+- TypeScript
+- React Navigation
+- AsyncStorage
+- Custom theming system
+
+**Getting Started**:
+```bash
+cd mobile-app
+npm install
+npm start
+```
+
+See [mobile-app/README.md](mobile-app/README.md) for detailed mobile app documentation.
+
+## Features
+
+Both applications provide:
+
+- **Summaries Platform** - Browse and share course summaries with LaTeX support
+- **Notebooks Platform** - Digital note-taking with canvas drawing capabilities
+- **Calendar & Tasks** - Schedule and task management with events
+
+## Development
+
+### Web App
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
+
+### Mobile App
+```bash
+cd mobile-app
+npm start        # Start Expo development server
+npm run android  # Run on Android
+npm run ios      # Run on iOS (macOS only)
+npm run web      # Run on web browser
+```
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+### Next.js Resources
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Learn Next.js](https://nextjs.org/learn)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### React Native Resources
+- [React Native Documentation](https://reactnative.dev/docs/getting-started)
+- [Expo Documentation](https://docs.expo.dev/)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+### Web Application
+Deploy using [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Mobile Application
+Build for Android using Expo:
+```bash
+cd mobile-app
+eas build --platform android
+```
+
+See the [Expo build documentation](https://docs.expo.dev/build/introduction/) for details.
+
+## License
+
+Built for students, by students.
