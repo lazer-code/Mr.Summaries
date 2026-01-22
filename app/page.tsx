@@ -41,7 +41,6 @@ export default function Home() {
               description="Manage your schedule and tasks with an integrated calendar view"
               icon={<Calendar className="h-12 w-12 text-blue-600 dark:text-blue-400" />}
               href="/calendar"
-              comingSoon
             />
           </div>
         </div>

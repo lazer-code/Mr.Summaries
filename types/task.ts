@@ -3,6 +3,8 @@ export interface Task {
   title: string;
   description?: string;
   dueDate: Date;
+  dueTime?: string; // HH:mm format
+  location?: string;
   completed: boolean;
   priority: "low" | "medium" | "high";
   category?: string;
@@ -13,6 +15,8 @@ export interface TaskFormData {
   title: string;
   description?: string;
   dueDate: Date;
+  dueTime?: string; // HH:mm format
+  location?: string;
   priority: "low" | "medium" | "high";
   category?: string;
 }
