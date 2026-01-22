@@ -28,7 +28,6 @@ export default function Home() {
               description="Digital note-taking in a notebook form with stylus support and rich formatting"
               icon={<BookOpen className="h-12 w-12 text-blue-600 dark:text-blue-400" />}
               href="/notebooks"
-              comingSoon
             />
             <PlatformCard
               title="Summaries"
