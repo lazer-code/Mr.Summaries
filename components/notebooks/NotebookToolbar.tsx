@@ -176,7 +176,7 @@ export function NotebookToolbar({
               </button>
               <button
                 onClick={onZoomIn}
-                disabled={zoom >= 200}
+                disabled={zoom >= 300}
                 className="flex items-center justify-center rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                 title="Zoom In"
               >
