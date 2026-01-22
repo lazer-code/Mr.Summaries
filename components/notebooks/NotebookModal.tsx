@@ -79,9 +79,7 @@ export function NotebookModal({ notebook, onClose, onDelete }: NotebookModalProp
       if (currentPageIndex >= renumberedPages.length) {
         setCurrentPageIndex(renumberedPages.length - 1);
       }
-      if (renumberedPages[currentPageIndex]) {
-        setTemplate(renumberedPages[currentPageIndex]?.template || "ruled");
-      }
+      setTemplate(renumberedPages[Math.min(currentPageIndex, renumberedPages.length - 1)]?.template || "ruled");
     }
   };
 
