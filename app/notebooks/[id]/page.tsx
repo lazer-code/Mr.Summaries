@@ -117,74 +117,71 @@ export default function NotebookFullPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Navigation */}
+    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Slim Top Bar */}
+      <div className="flex items-center justify-between border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
         <Link
           href="/notebooks"
-          className="mb-6 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Notebooks
+          Back
         </Link>
-
-        {/* Header */}
-        <div className="mb-8 rounded-2xl border-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-8 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="inline-block rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold text-white">
-              {notebook.subject}
-            </span>
-          </div>
-          <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">
+        
+        <div className="flex items-center gap-3">
+          <span className="inline-block rounded-lg bg-blue-600 px-3 py-1 text-sm font-semibold text-white">
+            {notebook.subject}
+          </span>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {notebook.title}
           </h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <User className="h-4 w-4" />
-              <span>{notebook.author}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{formatTimeAgo(notebook.updatedDate)}</span>
-            </div>
+        </div>
+        
+        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-1">
+            <User className="h-4 w-4" />
+            <span>{notebook.author}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            <span>{formatTimeAgo(notebook.updatedDate)}</span>
           </div>
         </div>
+      </div>
 
-        {/* Content Area */}
-        <div className="flex gap-6">
-          {/* Canvas Area */}
-          <div className="flex-1 rounded-2xl border-2 border-gray-200 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-            <NotebookCanvas
-              content={currentPage?.content}
-              onContentChange={handleContentChange}
-              tool={tool}
-              color={color}
-              strokeWidth={strokeWidth}
-              template={template}
-            />
-          </div>
-
-          {/* Toolbar Sidebar */}
-          <div className="w-64">
-            <NotebookToolbar
-              tool={tool}
-              onToolChange={setTool}
-              color={color}
-              onColorChange={setColor}
-              strokeWidth={strokeWidth}
-              onStrokeWidthChange={setStrokeWidth}
-              onClearPage={handleClearPage}
-              currentPage={currentPageIndex + 1}
-              totalPages={totalPages}
-              onPreviousPage={handlePreviousPage}
-              onNextPage={handleNextPage}
-              template={template}
-              onTemplateChange={handleTemplateChange}
-              onAddPage={handleAddPage}
-              onRemovePage={handleRemovePage}
-            />
-          </div>
+      {/* Horizontal Toolbar */}
+      <div className="border-b-2 border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mx-auto max-w-7xl">
+          <NotebookToolbar
+            tool={tool}
+            onToolChange={setTool}
+            color={color}
+            onColorChange={setColor}
+            strokeWidth={strokeWidth}
+            onStrokeWidthChange={setStrokeWidth}
+            onClearPage={handleClearPage}
+            currentPage={currentPageIndex + 1}
+            totalPages={totalPages}
+            onPreviousPage={handlePreviousPage}
+            onNextPage={handleNextPage}
+            template={template}
+            onTemplateChange={handleTemplateChange}
+            onAddPage={handleAddPage}
+            onRemovePage={handleRemovePage}
+          />
         </div>
+      </div>
+
+      {/* Fullscreen Canvas Area */}
+      <div className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
+        <NotebookCanvas
+          content={currentPage?.content}
+          onContentChange={handleContentChange}
+          tool={tool}
+          color={color}
+          strokeWidth={strokeWidth}
+          template={template}
+        />
       </div>
     </div>
   );
