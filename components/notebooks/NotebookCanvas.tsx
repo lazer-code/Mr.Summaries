@@ -173,7 +173,7 @@ export function NotebookCanvas({
   };
 
   return (
-    <div className="flex items-center justify-center overflow-auto rounded-lg border-2 border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div className="flex h-full items-center justify-center overflow-auto bg-gray-100 p-4 dark:bg-gray-800">
       <canvas
         ref={canvasRef}
         onMouseDown={startDrawing}
