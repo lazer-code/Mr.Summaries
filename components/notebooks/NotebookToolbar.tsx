@@ -1,6 +1,6 @@
 "use client";
 
-import { Pen, Eraser, Highlighter, Trash2, ChevronLeft, ChevronRight, Plus, Minus } from "lucide-react";
+import { Pen, Eraser, Highlighter, Trash2, ChevronLeft, ChevronRight, Plus, Minus, ZoomIn, ZoomOut } from "lucide-react";
 import { PageTemplate } from "@/types/notebook";
 
 interface NotebookToolbarProps {
@@ -19,6 +19,10 @@ interface NotebookToolbarProps {
   onTemplateChange: (template: PageTemplate) => void;
   onAddPage?: () => void;
   onRemovePage?: () => void;
+  zoom?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
 }
 
 const COLORS = [
@@ -28,12 +32,6 @@ const COLORS = [
   { name: "Green", value: "#16a34a" },
   { name: "Yellow", value: "#eab308" },
   { name: "Purple", value: "#9333ea" },
-];
-
-const STROKE_WIDTHS = [
-  { name: "Thin", value: 2 },
-  { name: "Medium", value: 4 },
-  { name: "Thick", value: 8 },
 ];
 
 export function NotebookToolbar({
@@ -52,6 +50,10 @@ export function NotebookToolbar({
   onTemplateChange,
   onAddPage,
   onRemovePage,
+  zoom,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
 }: NotebookToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-xl border-2 border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
@@ -125,30 +127,67 @@ export function NotebookToolbar({
       {/* Divider */}
       <div className="h-8 w-px bg-gray-200 dark:bg-gray-600" />
 
-      {/* Stroke Width */}
+      {/* Stroke Width Slider */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
           Width:
         </span>
-        <div className="flex gap-1">
-          {STROKE_WIDTHS.map((w) => (
-            <button
-              key={w.value}
-              onClick={() => onStrokeWidthChange(w.value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                strokeWidth === w.value
-                  ? "bg-blue-600 text-white dark:bg-blue-500"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              }`}
-            >
-              {w.name}
-            </button>
-          ))}
-        </div>
+        <input
+          type="range"
+          min="1"
+          max="20"
+          value={strokeWidth}
+          onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
+          className="h-2 w-24 cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+          style={{
+            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((strokeWidth - 1) / 19) * 100}%, #e5e7eb ${((strokeWidth - 1) / 19) * 100}%, #e5e7eb 100%)`
+          }}
+        />
+        <span className="min-w-[2rem] text-xs font-medium text-gray-600 dark:text-gray-400">
+          {strokeWidth}px
+        </span>
       </div>
 
       {/* Divider */}
       <div className="h-8 w-px bg-gray-200 dark:bg-gray-600" />
+
+      {/* Zoom Controls */}
+      {zoom !== undefined && onZoomIn && onZoomOut && onZoomReset && (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Zoom:
+            </span>
+            <div className="flex gap-1">
+              <button
+                onClick={onZoomOut}
+                disabled={zoom <= 50}
+                className="flex items-center justify-center rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onZoomReset}
+                className="flex items-center justify-center rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                title="Reset Zoom"
+              >
+                {zoom}%
+              </button>
+              <button
+                onClick={onZoomIn}
+                disabled={zoom >= 200}
+                className="flex items-center justify-center rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                title="Zoom In"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          {/* Divider */}
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-600" />
+        </>
+      )}
 
       {/* Page Template */}
       <div className="flex items-center gap-2">

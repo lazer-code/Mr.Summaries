@@ -10,6 +10,7 @@ interface NotebookCanvasProps {
   color: string;
   strokeWidth: number;
   template?: PageTemplate;
+  zoom?: number;
 }
 
 export function NotebookCanvas({
@@ -19,12 +20,16 @@ export function NotebookCanvas({
   color,
   strokeWidth,
   template = "ruled",
+  zoom = 100,
 }: NotebookCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<Point>({ x: 0, y: 0 });
 
   // Load content when it changes (e.g., when switching pages)
   useEffect(() => {
@@ -158,19 +163,27 @@ export function NotebookCanvas({
     return false;
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!context || !canvasRef.current) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    let x: number, y: number;
+    // Only allow pen or mouse for drawing, fingers are for panning
+    const isStylus = e.pointerType === 'pen';
+    const isMouse = e.pointerType === 'mouse';
+    const isFinger = e.pointerType === 'touch';
 
-    if ("touches" in e) {
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
+    if (isFinger) {
+      // Finger touch starts panning
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      return;
     }
+
+    if (!isStylus && !isMouse) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scale = zoom / 100;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
     const point: Point = { x, y };
 
@@ -199,25 +212,34 @@ export function NotebookCanvas({
     }
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!context || !canvasRef.current) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    let x: number, y: number;
+    const isStylus = e.pointerType === 'pen';
+    const isMouse = e.pointerType === 'mouse';
+    const isFinger = e.pointerType === 'touch';
 
-    if ("touches" in e) {
-      e.preventDefault();
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
+    // Handle panning with finger
+    if (isFinger && isPanning && containerRef.current) {
+      const deltaX = e.clientX - panStart.x;
+      const deltaY = e.clientY - panStart.y;
+      containerRef.current.scrollLeft -= deltaX;
+      containerRef.current.scrollTop -= deltaY;
+      setPanStart({ x: e.clientX, y: e.clientY });
+      return;
     }
+
+    if (!isStylus && !isMouse) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scale = zoom / 100;
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
     const point: Point = { x, y };
 
     if (tool === "eraser") {
-      // Eraser removes strokes on mouse/touch move
+      // Eraser removes strokes on pointer move
       const threshold = strokeWidth * 2;
       const remainingStrokes = strokes.filter(
         (stroke) => !isPointNearStroke(point, stroke, threshold)
@@ -246,6 +268,8 @@ export function NotebookCanvas({
   };
 
   const stopDrawing = () => {
+    setIsPanning(false);
+
     if (!isDrawing && tool !== "eraser") return;
 
     if (tool !== "eraser") {
@@ -273,16 +297,20 @@ export function NotebookCanvas({
   };
 
   return (
-    <div className="flex h-full items-center justify-center overflow-auto bg-gray-100 p-4 dark:bg-gray-800">
+    <div 
+      ref={containerRef}
+      className="flex h-full items-center justify-center overflow-auto bg-gray-100 p-4 dark:bg-gray-800"
+    >
       <canvas
         ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
+        onPointerDown={startDrawing}
+        onPointerMove={draw}
+        onPointerUp={stopDrawing}
+        onPointerLeave={stopDrawing}
+        style={{
+          transform: `scale(${zoom / 100})`,
+          transformOrigin: 'top left',
+        }}
         className="cursor-crosshair rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-600"
       />
     </div>
