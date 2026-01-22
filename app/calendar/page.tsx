@@ -10,7 +10,7 @@ import { EventCard } from "@/components/calendar/EventCard";
 import { EventForm } from "@/components/calendar/EventForm";
 import { Task, TaskFormData } from "@/types/task";
 import { CalendarEvent, EventFormData } from "@/types/event";
-import { mockTasks, getTasksForDate } from "@/lib/mock-tasks";
+import { mockTasks } from "@/lib/mock-tasks";
 import { getMonthName } from "@/lib/calendar-utils";
 
 export default function CalendarPage() {
@@ -95,7 +95,14 @@ export default function CalendarPage() {
 
   // Get tasks for selected date or all upcoming tasks
   const displayTasks = selectedDate
-    ? getTasksForDate(selectedDate)
+    ? tasks.filter((task) => {
+        const taskDate = new Date(task.dueDate);
+        return (
+          taskDate.getDate() === selectedDate.getDate() &&
+          taskDate.getMonth() === selectedDate.getMonth() &&
+          taskDate.getFullYear() === selectedDate.getFullYear()
+        );
+      })
     : tasks.filter((task) => {
         if (filterCompleted === "active") return !task.completed;
         if (filterCompleted === "completed") return task.completed;
