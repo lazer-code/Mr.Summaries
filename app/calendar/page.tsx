@@ -2,20 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from "lucide-react";
 import { MonthView } from "@/components/calendar/MonthView";
 import { TaskCard } from "@/components/calendar/TaskCard";
 import { TaskForm } from "@/components/calendar/TaskForm";
+import { EventCard } from "@/components/calendar/EventCard";
+import { EventForm } from "@/components/calendar/EventForm";
 import { Task, TaskFormData } from "@/types/task";
+import { CalendarEvent, EventFormData } from "@/types/event";
 import { mockTasks, getTasksForDate } from "@/lib/mock-tasks";
 import { getMonthName } from "@/lib/calendar-utils";
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(false);
   const [filterCompleted, setFilterCompleted] = useState<"all" | "active" | "completed">("all");
+  const [viewMode, setViewMode] = useState<"all" | "tasks" | "events">("all");
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -42,12 +48,31 @@ export default function CalendarPage() {
       title: data.title,
       description: data.description,
       dueDate: data.dueDate,
+      dueTime: data.dueTime,
+      location: data.location,
       completed: false,
       priority: data.priority,
       category: data.category,
       createdAt: new Date(),
     };
     setTasks([newTask, ...tasks]);
+  };
+
+  const handleCreateEvent = (data: EventFormData) => {
+    const newEvent: CalendarEvent = {
+      id: Date.now().toString(),
+      title: data.title,
+      description: data.description,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      location: data.location,
+      type: data.type,
+      color: data.color,
+      createdAt: new Date(),
+    };
+    setEvents([newEvent, ...events]);
   };
 
   const handleToggleComplete = (id: string) => {
@@ -58,6 +83,16 @@ export default function CalendarPage() {
     );
   };
 
+  // Get events for selected date or all events
+  const getEventsForDate = (date: Date) => {
+    return events.filter((event) => {
+      const eventStart = new Date(event.startDate);
+      const eventEnd = new Date(event.endDate);
+      return date >= new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate()) &&
+             date <= new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+    });
+  };
+
   // Get tasks for selected date or all upcoming tasks
   const displayTasks = selectedDate
     ? getTasksForDate(selectedDate)
@@ -66,6 +101,13 @@ export default function CalendarPage() {
         if (filterCompleted === "completed") return task.completed;
         return true;
       }).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+  const displayEvents = selectedDate
+    ? getEventsForDate(selectedDate)
+    : events.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+  const shouldShowTasks = viewMode === "all" || viewMode === "tasks";
+  const shouldShowEvents = viewMode === "all" || viewMode === "events";
 
   const overdueTasks = tasks.filter(
     (task) => !task.completed && new Date(task.dueDate) < new Date()
@@ -100,13 +142,22 @@ export default function CalendarPage() {
                 Manage your schedule and tasks
               </p>
             </div>
-            <button
-              onClick={() => setShowTaskForm(true)}
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-            >
-              <Plus className="h-5 w-5" />
-              New Task
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowEventForm(true)}
+                className="flex items-center gap-2 rounded-xl border-2 border-blue-600 bg-white px-6 py-3 font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
+              >
+                <CalendarIcon className="h-5 w-5" />
+                New Event
+              </button>
+              <button
+                onClick={() => setShowTaskForm(true)}
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                <Plus className="h-5 w-5" />
+                New Task
+              </button>
+            </div>
           </div>
         </div>
 
@@ -166,6 +217,7 @@ export default function CalendarPage() {
             <MonthView
               currentDate={currentDate}
               tasks={tasks}
+              events={events}
               onDateClick={handleDateClick}
             />
           </div>
@@ -175,8 +227,8 @@ export default function CalendarPage() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {selectedDate
-                  ? `Tasks for ${selectedDate.toLocaleDateString()}`
-                  : "All Tasks"}
+                  ? `Items for ${selectedDate.toLocaleDateString()}`
+                  : viewMode === "all" ? "All Items" : viewMode === "tasks" ? "All Tasks" : "All Events"}
               </h2>
               {selectedDate && (
                 <button
@@ -188,14 +240,50 @@ export default function CalendarPage() {
               )}
             </div>
 
-            {/* Filter Buttons */}
+            {/* View Mode Toggle */}
             {!selectedDate && (
+              <div className="mb-4 flex gap-2">
+                <button
+                  onClick={() => setViewMode("all")}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
+                    viewMode === "all"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setViewMode("tasks")}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
+                    viewMode === "tasks"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  Tasks
+                </button>
+                <button
+                  onClick={() => setViewMode("events")}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
+                    viewMode === "events"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  Events
+                </button>
+              </div>
+            )}
+
+            {/* Filter Buttons (for tasks only) */}
+            {!selectedDate && (viewMode === "all" || viewMode === "tasks") && (
               <div className="mb-4 flex gap-2">
                 <button
                   onClick={() => setFilterCompleted("all")}
                   className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
                     filterCompleted === "all"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
                   }`}
                 >
@@ -205,7 +293,7 @@ export default function CalendarPage() {
                   onClick={() => setFilterCompleted("active")}
                   className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
                     filterCompleted === "active"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
                   }`}
                 >
@@ -215,7 +303,7 @@ export default function CalendarPage() {
                   onClick={() => setFilterCompleted("completed")}
                   className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
                     filterCompleted === "completed"
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300"
                   }`}
                 >
@@ -224,23 +312,43 @@ export default function CalendarPage() {
               </div>
             )}
 
-            {/* Task List */}
+            {/* Task and Event List */}
             <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
-              {displayTasks.length > 0 ? (
-                displayTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onClick={() => {}}
-                    onToggleComplete={handleToggleComplete}
-                  />
-                ))
-              ) : (
+              {shouldShowTasks && displayTasks.length > 0 && (
+                <>
+                  {viewMode === "all" && <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Tasks</h3>}
+                  {displayTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onClick={() => {}}
+                      onToggleComplete={handleToggleComplete}
+                    />
+                  ))}
+                </>
+              )}
+              
+              {shouldShowEvents && displayEvents.length > 0 && (
+                <>
+                  {viewMode === "all" && displayTasks.length > 0 && <div className="my-4 border-t border-gray-300 dark:border-gray-700" />}
+                  {viewMode === "all" && <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Events</h3>}
+                  {displayEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onClick={() => {}}
+                    />
+                  ))}
+                </>
+              )}
+
+              {((shouldShowTasks && displayTasks.length === 0) && (shouldShowEvents && displayEvents.length === 0)) && (
                 <div className="rounded-xl border-2 border-dashed border-gray-300 p-8 text-center dark:border-gray-700">
                   <p className="text-gray-600 dark:text-gray-400">
-                    {selectedDate
-                      ? "No tasks for this date"
-                      : "No tasks to display"}
+                    {selectedDate ? "No items for this date" : 
+                     viewMode === "all" ? "No items to display" :
+                     viewMode === "tasks" ? "No tasks to display" :
+                     "No events to display"}
                   </p>
                 </div>
               )}
@@ -254,6 +362,15 @@ export default function CalendarPage() {
         <TaskForm
           onClose={() => setShowTaskForm(false)}
           onSubmit={handleCreateTask}
+          initialDate={selectedDate || undefined}
+        />
+      )}
+
+      {/* Event Form Modal */}
+      {showEventForm && (
+        <EventForm
+          onClose={() => setShowEventForm(false)}
+          onSubmit={handleCreateEvent}
           initialDate={selectedDate || undefined}
         />
       )}

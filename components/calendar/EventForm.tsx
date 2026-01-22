@@ -1,24 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { X, MapPin, Clock } from "lucide-react";
-import { TaskFormData } from "@/types/task";
+import { X, MapPin, Clock, Calendar } from "lucide-react";
+import { EventFormData } from "@/types/event";
 
-interface TaskFormProps {
+interface EventFormProps {
   onClose: () => void;
-  onSubmit: (data: TaskFormData) => void;
+  onSubmit: (data: EventFormData) => void;
   initialDate?: Date;
 }
 
-export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
-  const [formData, setFormData] = useState<TaskFormData>({
+export function EventForm({ onClose, onSubmit, initialDate }: EventFormProps) {
+  const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
-    dueDate: initialDate || new Date(),
-    dueTime: "",
+    startDate: initialDate || new Date(),
+    endDate: initialDate || new Date(),
+    startTime: "",
+    endTime: "",
     location: "",
-    priority: "medium",
-    category: "",
+    type: "event",
+    color: "#3b82f6",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,8 +36,8 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, dueDate: new Date(e.target.value) }));
+  const handleDateChange = (name: "startDate" | "endDate") => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [name]: new Date(e.target.value) }));
   };
 
   // Format date for input value (YYYY-MM-DD)
@@ -45,6 +47,14 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
+  const eventTypes = [
+    { value: "event", label: "Event" },
+    { value: "class", label: "Class" },
+    { value: "meeting", label: "Meeting" },
+    { value: "deadline", label: "Deadline" },
+    { value: "other", label: "Other" },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -60,7 +70,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
         <div className="border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Create New Task
+              Create New Event
             </h2>
             <button
               onClick={onClose}
@@ -81,7 +91,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
                 htmlFor="title"
                 className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Task Title *
+                Event Title *
               </label>
               <input
                 type="text"
@@ -90,7 +100,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="e.g., Study for exam"
+                placeholder="e.g., Team Meeting, Guest Lecture"
                 className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-800"
               />
             </div>
@@ -109,46 +119,94 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
                 value={formData.description}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Add more details about this task..."
+                placeholder="Add more details about this event..."
                 className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-800"
               />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Due Date */}
+              {/* Start Date */}
               <div>
                 <label
-                  htmlFor="dueDate"
+                  htmlFor="startDate"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Due Date *
+                  Start Date *
                 </label>
-                <input
-                  type="date"
-                  id="dueDate"
-                  name="dueDate"
-                  required
-                  value={formatDateForInput(formData.dueDate)}
-                  onChange={handleDateChange}
-                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    required
+                    value={formatDateForInput(formData.startDate)}
+                    onChange={handleDateChange("startDate")}
+                    className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 pl-10 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
+                  />
+                </div>
               </div>
 
-              {/* Due Time */}
+              {/* End Date */}
               <div>
                 <label
-                  htmlFor="dueTime"
+                  htmlFor="endDate"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Due Time
+                  End Date *
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    required
+                    value={formatDateForInput(formData.endDate)}
+                    onChange={handleDateChange("endDate")}
+                    className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 pl-10 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Start Time */}
+              <div>
+                <label
+                  htmlFor="startTime"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Start Time
                 </label>
                 <div className="relative">
                   <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <input
                     type="time"
-                    id="dueTime"
-                    name="dueTime"
-                    value={formData.dueTime}
+                    id="startTime"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 pl-10 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
+                  />
+                </div>
+              </div>
+
+              {/* End Time */}
+              <div>
+                <label
+                  htmlFor="endTime"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  End Time
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="time"
+                    id="endTime"
+                    name="endTime"
+                    value={formData.endTime}
                     onChange={handleChange}
                     className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 pl-10 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
                   />
@@ -157,44 +215,45 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Priority */}
+              {/* Event Type */}
               <div>
                 <label
-                  htmlFor="priority"
+                  htmlFor="type"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Priority *
+                  Event Type *
                 </label>
                 <select
-                  id="priority"
-                  name="priority"
+                  id="type"
+                  name="type"
                   required
-                  value={formData.priority}
+                  value={formData.type}
                   onChange={handleChange}
                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-gray-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-800"
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  {eventTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Category */}
+              {/* Color */}
               <div>
                 <label
-                  htmlFor="category"
+                  htmlFor="color"
                   className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Category
+                  Color
                 </label>
                 <input
-                  type="text"
-                  id="category"
-                  name="category"
-                  value={formData.category}
+                  type="color"
+                  id="color"
+                  name="color"
+                  value={formData.color}
                   onChange={handleChange}
-                  placeholder="e.g., Exam, Assignment, Meeting"
-                  className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-800"
+                  className="h-10 w-full rounded-lg border-2 border-gray-200 bg-white px-2 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-blue-400 dark:focus:ring-blue-800"
                 />
               </div>
             </div>
@@ -215,7 +274,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
-                  placeholder="e.g., Library, Room 101, Online"
+                  placeholder="e.g., Conference Room A, Zoom, Building 5"
                   className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2 pl-10 text-gray-900 placeholder-gray-400 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400 dark:focus:ring-blue-800"
                 />
               </div>
@@ -235,7 +294,7 @@ export function TaskForm({ onClose, onSubmit, initialDate }: TaskFormProps) {
               type="submit"
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
-              Create Task
+              Create Event
             </button>
           </div>
         </form>

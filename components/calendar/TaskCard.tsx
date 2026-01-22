@@ -2,7 +2,7 @@
 
 import { Task } from "@/types/task";
 import { formatDate } from "@/lib/calendar-utils";
-import { CheckCircle2, Circle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Circle, Clock, AlertCircle, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
@@ -77,8 +77,17 @@ export function TaskCard({ task, onClick, onToggleComplete }: TaskCardProps) {
                 isToday && "text-blue-600 dark:text-blue-400 font-semibold"
               )}>
                 {formatDate(task.dueDate)}
+                {task.dueTime && ` at ${task.dueTime}`}
               </span>
             </div>
+
+            {/* Location */}
+            {task.location && (
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                <MapPin className="h-3 w-3" />
+                <span>{task.location}</span>
+              </div>
+            )}
 
             {/* Category */}
             {task.category && (
