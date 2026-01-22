@@ -3,6 +3,8 @@
 import { Summary } from "@/types/summary";
 import { formatTimeAgo } from "@/lib/utils";
 import { Clock, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
 
 interface SummaryBlockProps {
   summary: Summary;
@@ -10,9 +12,33 @@ interface SummaryBlockProps {
 }
 
 export function SummaryBlock({ summary, onClick }: SummaryBlockProps) {
+  const router = useRouter();
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clickCountRef = useRef(0);
+
+  const handleClick = () => {
+    clickCountRef.current += 1;
+
+    if (clickCountRef.current === 1) {
+      // First click - wait to see if there's a second click
+      clickTimeoutRef.current = setTimeout(() => {
+        // Single click - open modal
+        onClick();
+        clickCountRef.current = 0;
+      }, 300); // 300ms delay to detect double click
+    } else if (clickCountRef.current === 2) {
+      // Double click - navigate to full page
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+      clickCountRef.current = 0;
+      router.push(`/summaries/${summary.id}`);
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="cursor-pointer rounded-xl border-2 border-gray-200 bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:border-blue-400 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500"
     >
       {/* Course Info */}
