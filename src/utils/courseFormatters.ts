@@ -18,29 +18,29 @@ export const getSemesterRank = (semester?: string | null): number => {
 
 export const formatYear = (year?: number | string | null): string => {
   if (year === undefined || year === null || year === '') return '';
-  const yStr = String(year).trim();
-  if (yStr === '1' || yStr === 'א' || yStr === "א'" || yStr === 'שנה א' || yStr === "שנה א'") return "שנה א'";
-  if (yStr === '2' || yStr === 'ב' || yStr === "ב'" || yStr === 'שנה ב' || yStr === "שנה ב'") return "שנה ב'";
-  if (yStr === '3' || yStr === 'ג' || yStr === "ג'" || yStr === 'שנה ג' || yStr === "שנה ג'") return "שנה ג'";
-  if (yStr === '4' || yStr === 'ד' || yStr === "ד'" || yStr === 'שנה ד' || yStr === "שנה ד'") return "שנה ד'";
+  const yStr = String(year).trim().replace(/['׳"]/g, '');
+  if (yStr === '1' || yStr === 'א' || yStr === 'שנה א') return "שנה א׳";
+  if (yStr === '2' || yStr === 'ב' || yStr === 'שנה ב') return "שנה ב׳";
+  if (yStr === '3' || yStr === 'ג' || yStr === 'שנה ג') return "שנה ג׳";
+  if (yStr === '4' || yStr === 'ד' || yStr === 'שנה ד') return "שנה ד׳";
 
   const num = Number(yStr);
-  if (num === 1) return "שנה א'";
-  if (num === 2) return "שנה ב'";
-  if (num === 3) return "שנה ג'";
-  if (num === 4) return "שנה ד'";
+  if (num === 1) return "שנה א׳";
+  if (num === 2) return "שנה ב׳";
+  if (num === 3) return "שנה ג׳";
+  if (num === 4) return "שנה ד׳";
 
-  return yStr;
+  return String(year).trim();
 };
 
 export const getYearNumeric = (year?: number | string | null): number | null => {
   if (year === undefined || year === null || year === '') return null;
   if (typeof year === 'number' && !isNaN(year)) return year;
-  const s = String(year).trim();
-  if (s === '1' || s === 'א' || s === "א'" || s.includes('שנה א')) return 1;
-  if (s === '2' || s === 'ב' || s === "ב'" || s.includes('שנה ב')) return 2;
-  if (s === '3' || s === 'ג' || s === "ג'" || s.includes('שנה ג')) return 3;
-  if (s === '4' || s === 'ד' || s === "ד'" || s.includes('שנה ד')) return 4;
+  const s = String(year).trim().replace(/['׳"]/g, '');
+  if (s === '1' || s === 'א' || s.includes('שנה א')) return 1;
+  if (s === '2' || s === 'ב' || s.includes('שנה ב')) return 2;
+  if (s === '3' || s === 'ג' || s.includes('שנה ג')) return 3;
+  if (s === '4' || s === 'ד' || s.includes('שנה ד')) return 4;
   const parsed = parseInt(s, 10);
   return isNaN(parsed) ? null : parsed;
 };

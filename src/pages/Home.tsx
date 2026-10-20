@@ -20,8 +20,6 @@ interface GroupedCourseSectionProps {
   isEnrolledList?: boolean;
   emptyMessage: string;
   user: any;
-  containerVariants: any;
-  itemVariants: any;
 }
 
 const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
@@ -32,34 +30,27 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
   isEnrolledList = false,
   emptyMessage,
   user,
-  containerVariants,
-  itemVariants
 }) => {
   if (groups.length === 0) {
     return (
-      <motion.div variants={itemVariants} className="p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm opacity-60 text-center">
+      <div className="p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm text-center">
         <p className="text-zinc-400 text-sm">{emptyMessage}</p>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-10">
+    <div className="space-y-10">
       {groups.map((yearGroup) => (
         <div key={yearGroup.yearLabel} className="space-y-6">
-          {/* כותרת שנה */}
-          <div className="flex items-center gap-3 pb-3 border-b border-zinc-800">
-            <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400 font-bold text-sm shadow-sm shrink-0">
-              {yearGroup.yearNumeric ? `ש${['א', 'ב', 'ג', 'ד'][yearGroup.yearNumeric - 1] || yearGroup.yearNumeric}` : '•'}
-            </div>
-            <div className="flex items-baseline gap-2.5">
-              <h3 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
-                {yearGroup.yearLabel}
-              </h3>
-              <span className="text-xs text-zinc-500 font-medium">
-                ({yearGroup.totalCoursesCount} {yearGroup.totalCoursesCount === 1 ? 'קורס' : 'קורסים'})
-              </span>
-            </div>
+          {/* כותרת שנה - ללא אייקון */}
+          <div className="flex items-baseline gap-2.5 pb-3 border-b border-zinc-850 border-zinc-800">
+            <h3 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
+              {yearGroup.yearLabel}
+            </h3>
+            <span className="text-xs text-zinc-500 font-medium">
+              ({yearGroup.totalCoursesCount} {yearGroup.totalCoursesCount === 1 ? 'קורס' : 'קורסים'})
+            </span>
           </div>
 
           {/* סמסטרים בתוך השנה */}
@@ -77,62 +68,76 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                   </span>
                 </div>
 
-                {/* גריד קורסים ממוין אלפבתית */}
+                {/* בלוקי קורסים - גלויים, ברורים וממוינים אלפבתית */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {semGroup.courses.map((course) => {
                     const isEnrolled = enrolledCourseIds.includes(course.$id);
                     return (
-                      <motion.div key={course.$id} variants={itemVariants}>
-                        <div className="block group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all">
-                          <div className="flex justify-between items-start mb-2">
-                            <Link to={`/course/${course.$id}`} className="min-w-0 flex-1 ml-2">
-                              <h3 className="text-xl font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors truncate">
-                                {course.name}
-                              </h3>
-                            </Link>
-                            <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
-                              <span className={`text-xs font-mono px-2 py-0.5 rounded-md ${
-                                isEnrolledList 
-                                  ? 'bg-cyan-900/50 text-cyan-300' 
-                                  : 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
-                              }`}>
-                                {course.number}
-                              </span>
-                              {course.year && (
-                                <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                                  {formatYear(course.year)}
-                                </span>
+                      <div 
+                        key={course.$id}
+                        className="group relative p-5 sm:p-6 rounded-2xl bg-zinc-800/70 hover:bg-zinc-800/95 border border-zinc-700/60 hover:border-cyan-500/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                      >
+                        {/* קישור לחיץ על כל שטח הכרטיס */}
+                        <Link 
+                          to={`/course/${course.$id}`} 
+                          className="absolute inset-0 z-0 rounded-2xl" 
+                          aria-label={course.name}
+                        />
+
+                        {/* שורה עליונה: שם הקורס (לא נחתך) וכפתור שמירה למועדפים */}
+                        <div className="relative z-10 flex items-start justify-between gap-3">
+                          <Link to={`/course/${course.$id}`} className="min-w-0 flex-1">
+                            <h3 className="text-lg sm:text-xl font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors leading-snug break-words">
+                              {course.name}
+                            </h3>
+                          </Link>
+
+                          {user && (
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleEnrollment(course.$id, enrollments[course.$id] || null);
+                              }} 
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                                isEnrolled
+                                  ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40'
+                                  : 'text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700/40'
+                              }`}
+                              title={isEnrolled ? 'הסר מהקורסים שלי' : 'הוסף לקורסים שלי'}
+                              aria-label={isEnrolled ? 'הסר מהקורסים שלי' : 'הוסף לקורסים שלי'}
+                            >
+                              {isEnrolled ? (
+                                <BookmarkCheck className="w-5 h-5" />
+                              ) : (
+                                <BookmarkPlus className="w-5 h-5" />
                               )}
-                              {(course.Semester || course.semester) && (
-                                <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                                  {formatSemester(course.Semester || course.semester)}
-                                </span>
-                              )}
-                              {user && (
-                                <button 
-                                  type="button"
-                                  onClick={() => toggleEnrollment(course.$id, enrollments[course.$id] || null)} 
-                                  className={`p-1 rounded-lg transition-colors mr-1 cursor-pointer ${
-                                    isEnrolled
-                                      ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40'
-                                      : 'text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700/40'
-                                  }`}
-                                  title={isEnrolled ? 'הסר מהקורסים שלי' : 'הוסף לקורסים שלי'}
-                                >
-                                  {isEnrolled ? (
-                                    <BookmarkCheck className="w-5 h-5" />
-                                  ) : (
-                                    <BookmarkPlus className="w-5 h-5" />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <p className="text-zinc-400 group-hover:text-zinc-300 text-sm line-clamp-2 transition-colors">
-                            לחץ לצפייה בסילבוס, סיכומים, הגדרות ומשפטים.
-                          </p>
+                            </button>
+                          )}
                         </div>
-                      </motion.div>
+
+                        {/* נתוני הקורס: מספר קורס, שנה, סמסטר - מוצגים מתחת לשם הקורס */}
+                        <div className="relative z-10 mt-3.5 flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs font-mono px-2.5 py-1 rounded-md font-semibold ${
+                            isEnrolledList 
+                              ? 'bg-cyan-900/50 text-cyan-300 border border-cyan-800/60' 
+                              : 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
+                          }`}>
+                            {course.number}
+                          </span>
+                          {course.year && (
+                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-md font-medium">
+                              {formatYear(course.year)}
+                            </span>
+                          )}
+                          {(course.Semester || course.semester) && (
+                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-md font-medium">
+                              {formatSemester(course.Semester || course.semester)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -141,7 +146,7 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
           </div>
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 };
 
@@ -159,7 +164,7 @@ const Home = () => {
     try {
       setErrorMsg(null);
       const res = await api.getCourses();
-      setCourses(res.documents);
+      setCourses(res.documents || []);
 
       // Fetch enrollments if user is logged in
       if (user) {
@@ -251,86 +256,55 @@ const Home = () => {
     return groupCoursesByYearAndSemester(list);
   }, [courses, enrolledCourseIds, user, searchNormalized]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  } as const;
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  } as const;
-
   return (
-    <div className="relative min-h-[80vh] flex flex-col items-center pt-32" dir="rtl">
-      <motion.div 
-        initial={{ top: '40%', left: '50%', x: '-50%', y: '-50%', scale: 1, opacity: 1 }}
-        animate={{ top: '10%', left: '50%', x: '-50%', y: '-50%', scale: 0.8, opacity: 0 }}
-        transition={{ delay: 1, duration: 0.8, ease: "easeInOut" }}
-        className="fixed z-40 pointer-events-none"
-      >
-        <h1 className="text-6xl md:text-8xl font-black tracking-tighter bg-gradient-to-r from-cyan-500 to-emerald-400 bg-clip-text text-transparent drop-shadow-sm whitespace-nowrap">
-          Mr.Summaries
-        </h1>
-      </motion.div>
+    <div className="relative min-h-[80vh] flex flex-col items-center pt-20 sm:pt-28" dir="rtl">
+      <div className="w-full max-w-3xl z-30">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl sm:text-7xl font-black tracking-tight bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            Mr.Summaries
+          </h1>
+          <p className="text-zinc-400 mt-2 text-sm sm:text-base">
+            סילבוסים, סיכומים, הגדרות ומשפטים ממוינים לפי שנים וסמסטרים
+          </p>
+        </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5, duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-3xl z-30 mt-12"
-      >
         <div className="relative group">
           <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-zinc-400 mr-3" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-12 py-4 border border-zinc-700/50 rounded-2xl leading-5 bg-zinc-800/40 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100"
-            placeholder="חיפוש קורסים וסיכומים..."
+            className="block w-full pl-10 pr-12 py-3.5 sm:py-4 border border-zinc-700/60 rounded-2xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100"
+            placeholder="חיפוש קורסים לפי שם או מספר..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {isAdmin && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.8 }}
-            className="mt-6 flex justify-end"
-          >
+          <div className="mt-5 flex justify-end">
             <button 
               onClick={() => setIsCourseModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer font-medium text-sm"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               הוסף קורס
             </button>
-          </motion.div>
+          </div>
         )}
 
-        <div className="mt-12 space-y-12 pb-32">
+        <div className="mt-10 space-y-12 pb-32">
           {errorMsg && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-4 bg-red-900/30 backdrop-blur-md border border-red-800 rounded-xl text-red-400"
-            >
+            <div className="p-4 bg-red-900/30 backdrop-blur-md border border-red-800 rounded-xl text-red-400">
               <p className="font-bold mb-1">שגיאת התחברות ל-Appwrite:</p>
               <p className="font-mono text-sm" dir="ltr">{errorMsg}</p>
-            </motion.div>
+            </div>
           )}
 
           {user && (
             <section>
-              <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-cyan-500" />
+              <h2 className="text-xl sm:text-2xl font-bold mb-5 text-zinc-100 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                 הקורסים שלי
               </h2>
               <GroupedCourseSection
@@ -341,15 +315,13 @@ const Home = () => {
                 isEnrolledList={true}
                 emptyMessage={searchNormalized ? 'לא נמצאו קורסים רשומים התואמים לחיפוש.' : 'אין קורסים רשומים עדיין.'}
                 user={user}
-                containerVariants={containerVariants}
-                itemVariants={itemVariants}
               />
             </section>
           )}
 
           <section>
-            <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center gap-2">
-              <BookOpen className="w-6 h-6 text-zinc-500" />
+            <h2 className="text-xl sm:text-2xl font-bold mb-5 text-zinc-100 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400" />
               {user ? 'קורסים נוספים' : 'כל הקורסים'}
             </h2>
             <GroupedCourseSection
@@ -360,12 +332,10 @@ const Home = () => {
               isEnrolledList={false}
               emptyMessage={searchNormalized ? 'לא נמצאו קורסים התואמים את החיפוש.' : 'אין קורסים זמינים.'}
               user={user}
-              containerVariants={containerVariants}
-              itemVariants={itemVariants}
             />
           </section>
         </div>
-      </motion.div>
+      </div>
 
       <CourseModal 
         isOpen={isCourseModalOpen} 
