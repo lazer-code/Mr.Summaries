@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+.katex {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* Prevent RTL text direction from corrupting SVG diagram labels.
+   The page may be in an RTL context (e.g. Hebrew content), and although the
+   svg-renderer already sets dir="ltr", SVG <text> nodes can still be
+   reordered by the Unicode Bidi algorithm.  Forcing direction:ltr on the
+   SVG root and all its text elements mirrors the same fix used for KaTeX. */
+.svg-renderer svg,
+.svg-renderer svg text {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Fix inline SVG <text> positioning: prevent CSS inherited from the
+   surrounding Tailwind prose context from pulling SVG text elements out of
+   SVG's coordinate-based rendering model.
+
+   Without this, browsers can treat <text>, <tspan>, and <tref> as HTML
+   block-flow elements — causing them to render below the SVG image and
+   ignore their authored x/y positions entirely.  Asserting display:inline
+   keeps them in SVG's own layout context where x/y attributes govern
+   placement. */
+.svg-renderer svg text,
+.svg-renderer svg tspan,
+.svg-renderer svg tref {
+  display: inline;
+}
+
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-primary: var(--color-cyan-600);
+  --color-brand-secondary: var(--color-teal-500);
+  --color-brand-accent: var(--color-emerald-500);
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-50 transition-colors duration-500;
+  }
+}
+
+.markdown-body {
+  @apply prose prose-zinc prose-invert max-w-none;
+}
+
+.markdown-body mark,
+.markdown-body [style*="background-color: yellow"],
+.markdown-body [style*="background: yellow"],
+.markdown-body [style*="background-color: #FF"],
+.markdown-body [style*="background-color: #ff"],
+.markdown-body [style*="background-color: rgb(255, 255, 0)"] {
+  color: #000 !important;
+}
+
+.glass-card {
+  @apply bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 shadow-2xl;
+}
+
+.btn-primary {
+  @apply bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl transition-all active:scale-95 shadow-lg shadow-cyan-600/20;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.3) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.6);
+  background-clip: content-box;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.3) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.6);
+  background-clip: content-box;
+}
