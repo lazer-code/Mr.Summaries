@@ -5,7 +5,7 @@ import { Search, BookOpen, Plus, BookmarkPlus, BookmarkCheck } from 'lucide-reac
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { CourseModal } from '../components/CourseModal';
-import { formatSemester } from '../utils/courseFormatters';
+import { formatSemester, formatYear, sortCourses } from '../utils/courseFormatters';
 
 const Home = () => {
   const { user, isAdmin } = useAuthStore();
@@ -21,8 +21,8 @@ const Home = () => {
     try {
       setErrorMsg(null);
       const res = await api.getCourses();
-      // Sort alphabetically
-      const sorted = res.documents.sort((a: any, b: any) => a.name.localeCompare(b.name, 'he'));
+      // Sort by year (descending), semester (ascending), name (ascending)
+      const sorted = [...res.documents].sort(sortCourses);
       setCourses(sorted);
 
       // Fetch enrollments if user is logged in
@@ -88,11 +88,19 @@ const Home = () => {
     fetchCourses();
   }, [fetchCourses, user]);
 
+  const enrolledCourses = useMemo(() => {
+    return courses
+      .filter(c => enrolledCourseIds.includes(c.$id))
+      .sort(sortCourses);
+  }, [courses, enrolledCourseIds]);
+
   const filteredCourses = useMemo(() => {
-    return courses.filter(c => 
-      (c.name.includes(deferredSearch) || c.number.includes(deferredSearch)) &&
-      !enrolledCourseIds.includes(c.$id)
-    );
+    return courses
+      .filter(c => 
+        (c.name.includes(deferredSearch) || c.number.includes(deferredSearch)) &&
+        !enrolledCourseIds.includes(c.$id)
+      )
+      .sort(sortCourses);
   }, [courses, deferredSearch, enrolledCourseIds]);
 
   const containerVariants = {
@@ -183,8 +191,8 @@ const Home = () => {
                 animate="show"
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
               >
-                {courses.filter(c => enrolledCourseIds.includes(c.$id)).length > 0 ? (
-                  courses.filter(c => enrolledCourseIds.includes(c.$id)).map((course) => (
+                {enrolledCourses.length > 0 ? (
+                  enrolledCourses.map((course) => (
                     <motion.div key={course.$id} variants={itemVariants}>
                       <div 
                         className="block group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all"
@@ -200,8 +208,8 @@ const Home = () => {
                               {course.number}
                             </span>
                             {course.year && (
-                              <span className="text-xs font-mono bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                                {course.year}
+                              <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                                {formatYear(course.year)}
                               </span>
                             )}
                             {(course.Semester || course.semester) && (
@@ -256,8 +264,8 @@ const Home = () => {
                           {course.number}
                         </span>
                         {course.year && (
-                          <span className="text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                            {course.year}
+                          <span className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                            {formatYear(course.year)}
                           </span>
                         )}
                         {(course.Semester || course.semester) && (

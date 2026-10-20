@@ -9,7 +9,7 @@ import { CourseModal } from '../components/CourseModal';
 import { ContentModal, ContentType } from '../components/ContentModal';
 import { AddPageModal } from '../components/AddPageModal';
 import { PdfTextRenderer } from '../components/PdfTextRenderer';
-import { formatSemester } from '../utils/courseFormatters';
+import { formatSemester, formatYear } from '../utils/courseFormatters';
 
 const Course = () => {
   const navigate = useNavigate();
@@ -254,8 +254,8 @@ const Course = () => {
               {course.number}
             </span>
             {course.year && (
-              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-mono font-medium">
-                {course.year}
+              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-medium">
+                {formatYear(course.year)}
               </span>
             )}
             {(course.Semester || course.semester) && (

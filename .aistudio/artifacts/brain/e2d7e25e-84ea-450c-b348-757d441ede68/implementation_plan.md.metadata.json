@@ -1,6 +1,6 @@
 {
-  "summary": "Implementation plan to restore Year and Semester inputs in CourseModal, persist them properly to Appwrite, and display elegant badges on course cards in Home and the Course header.",
-  "updatedAt": "2026-10-20T14:13:04.185153485Z",
-  "requestFeedback": true,
-  "userFacing": true
+  "summary":  "Plan for implementing degree year (1-4) selection, Hebrew year badges (שנה א'-ד'), and multi-level course sorting (year descending, semester ascending, name ascending) across the main screen.",
+  "updatedAt":  "2026-10-20T14:33:05.354498863Z",
+  "requestFeedback":  true,
+  "userFacing":  true
 }

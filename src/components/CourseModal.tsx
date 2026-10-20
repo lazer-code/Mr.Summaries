@@ -51,7 +51,7 @@ const uploadContent = async (content: string, filename: string, oldFileId?: stri
 export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onClose, onSave, course }) => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
-  const [year, setYear] = useState<number | string>(new Date().getFullYear());
+  const [year, setYear] = useState<number | string>(1);
   const [semester, setSemester] = useState<string>('A');
   const [rightAlign, setRightAlign] = useState(false);
   const [overviewContent, setOverviewContent] = useState('');
@@ -95,7 +95,10 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
       if (course) {
         setName(course.name || '');
         setNumber(course.number || '');
-        setYear(course.year !== undefined && course.year !== null ? course.year : new Date().getFullYear());
+        const initialYear = course.year !== undefined && course.year !== null
+          ? (Number(course.year) >= 1 && Number(course.year) <= 4 ? Number(course.year) : course.year)
+          : 1;
+        setYear(initialYear);
         setSemester(course.Semester || course.semester || 'A');
         setRightAlign(course.rightAlign || false);
         
@@ -127,7 +130,7 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
       } else {
         setName('');
         setNumber('');
-        setYear(new Date().getFullYear());
+        setYear(1);
         setSemester('A');
         setRightAlign(false);
         setOverviewContent('');
@@ -268,17 +271,21 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">שנת לימוד</label>
-                  <input
-                    type="number"
-                    min="2000"
-                    max="2100"
-                    placeholder="לדוגמה: 2025"
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">שנת לימוד בתואר</label>
+                  <select
                     disabled={isLoadingContent}
                     value={year}
-                    onChange={(e) => setYear(e.target.value)}
+                    onChange={(e) => setYear(Number(e.target.value))}
                     className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 focus:ring-2 focus:ring-cyan-500 outline-none transition-all disabled:opacity-50"
-                  />
+                  >
+                    <option value={1}>שנה א'</option>
+                    <option value={2}>שנה ב'</option>
+                    <option value={3}>שנה ג'</option>
+                    <option value={4}>שנה ד'</option>
+                    {year && ![1, 2, 3, 4].includes(Number(year)) && (
+                      <option value={year}>{`שנה ${year}`}</option>
+                    )}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">סמסטר</label>
