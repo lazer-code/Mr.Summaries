@@ -9,6 +9,7 @@ import { CourseModal } from '../components/CourseModal';
 import { ContentModal, ContentType } from '../components/ContentModal';
 import { AddPageModal } from '../components/AddPageModal';
 import { PdfTextRenderer } from '../components/PdfTextRenderer';
+import { formatSemester } from '../utils/courseFormatters';
 
 const Course = () => {
   const navigate = useNavigate();
@@ -245,12 +246,24 @@ const Course = () => {
     <div className="max-w-5xl mx-auto px-4" dir="rtl">
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-zinc-100 mb-2">
+          <h1 className="text-4xl font-bold text-zinc-100 mb-3">
             {course.name}
           </h1>
-          <span className="inline-block bg-cyan-900/50 text-cyan-300 px-3 py-1 rounded-full text-sm font-mono font-medium">
-            {course.number}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-block bg-cyan-900/50 text-cyan-300 px-3 py-1 rounded-lg text-sm font-mono font-medium">
+              {course.number}
+            </span>
+            {course.year && (
+              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-mono font-medium">
+                {course.year}
+              </span>
+            )}
+            {(course.Semester || course.semester) && (
+              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-medium">
+                {formatSemester(course.Semester || course.semester)}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           <button 

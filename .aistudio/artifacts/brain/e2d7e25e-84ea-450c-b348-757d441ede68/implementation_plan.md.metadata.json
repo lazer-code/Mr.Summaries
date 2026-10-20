@@ -1,6 +1,6 @@
 {
-  "summary": "Implementation plan to migrate Definitions and Claims note creation from the Course Modal into the Add Note/Page flow as single dedicated course pages.",
-  "updatedAt": "2026-10-20T13:28:48.815010261Z",
+  "summary": "Implementation plan to restore Year and Semester inputs in CourseModal, persist them properly to Appwrite, and display elegant badges on course cards in Home and the Course header.",
+  "updatedAt": "2026-10-20T14:13:04.185153485Z",
   "requestFeedback": true,
   "userFacing": true
 }

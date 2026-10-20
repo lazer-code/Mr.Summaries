@@ -5,6 +5,7 @@ import { Search, BookOpen, Plus, BookmarkPlus, BookmarkCheck } from 'lucide-reac
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { CourseModal } from '../components/CourseModal';
+import { formatSemester } from '../utils/courseFormatters';
 
 const Home = () => {
   const { user, isAdmin } = useAuthStore();
@@ -194,11 +195,21 @@ const Home = () => {
                               {course.name}
                             </h3>
                           </Link>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono bg-cyan-900/50 text-cyan-300 px-2 py-1 rounded-md">
+                          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                            <span className="text-xs font-mono bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-md">
                               {course.number}
                             </span>
-                            <button onClick={() => toggleEnrollment(course.$id, enrollments[course.$id] || null)} className="text-emerald-500 hover:text-emerald-600">
+                            {course.year && (
+                              <span className="text-xs font-mono bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                                {course.year}
+                              </span>
+                            )}
+                            {(course.Semester || course.semester) && (
+                              <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                                {formatSemester(course.Semester || course.semester)}
+                              </span>
+                            )}
+                            <button onClick={() => toggleEnrollment(course.$id, enrollments[course.$id] || null)} className="text-emerald-500 hover:text-emerald-400 transition-colors mr-1">
                               <BookmarkCheck className="w-5 h-5" />
                             </button>
                           </div>
@@ -240,11 +251,21 @@ const Home = () => {
                           {course.name}
                         </h3>
                       </Link>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono bg-zinc-800 text-zinc-300 px-2 py-1 rounded-md">
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <span className="text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
                           {course.number}
                         </span>
-                        <button onClick={() => toggleEnrollment(course.$id, null)} className="text-cyan-500 hover:text-cyan-600">
+                        {course.year && (
+                          <span className="text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                            {course.year}
+                          </span>
+                        )}
+                        {(course.Semester || course.semester) && (
+                          <span className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                            {formatSemester(course.Semester || course.semester)}
+                          </span>
+                        )}
+                        <button onClick={() => toggleEnrollment(course.$id, null)} className="text-cyan-500 hover:text-cyan-400 transition-colors mr-1">
                           <BookmarkPlus className="w-5 h-5" />
                         </button>
                       </div>

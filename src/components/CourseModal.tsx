@@ -51,6 +51,8 @@ const uploadContent = async (content: string, filename: string, oldFileId?: stri
 export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onClose, onSave, course }) => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+  const [year, setYear] = useState<number | string>(new Date().getFullYear());
+  const [semester, setSemester] = useState<string>('A');
   const [rightAlign, setRightAlign] = useState(false);
   const [overviewContent, setOverviewContent] = useState('');
   const [overviewUrl, setOverviewUrl] = useState('');
@@ -93,6 +95,8 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
       if (course) {
         setName(course.name || '');
         setNumber(course.number || '');
+        setYear(course.year !== undefined && course.year !== null ? course.year : new Date().getFullYear());
+        setSemester(course.Semester || course.semester || 'A');
         setRightAlign(course.rightAlign || false);
         
         const loadContents = async () => {
@@ -123,6 +127,8 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
       } else {
         setName('');
         setNumber('');
+        setYear(new Date().getFullYear());
+        setSemester('A');
         setRightAlign(false);
         setOverviewContent('');
         setOverviewUrl('');
@@ -169,9 +175,12 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
         finalOvId = await uploadFile(overviewContent, id, finalOvId, overviewFileType);
       }
 
+      const parsedYear = year ? parseInt(year.toString(), 10) : null;
       const data: any = {
         name,
         number: courseNum,
+        year: isNaN(parsedYear as number) ? null : parsedYear,
+        Semester: semester || null,
         rightAlign,
         overviewID: finalOvId
       };
@@ -254,6 +263,35 @@ export const CourseModal: React.FC<CourseModalProps> = React.memo(({ isOpen, onC
                     onChange={(e) => setNumber(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 focus:ring-2 focus:ring-cyan-500 outline-none transition-all disabled:opacity-50"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">שנת לימוד</label>
+                  <input
+                    type="number"
+                    min="2000"
+                    max="2100"
+                    placeholder="לדוגמה: 2025"
+                    disabled={isLoadingContent}
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 focus:ring-2 focus:ring-cyan-500 outline-none transition-all disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">סמסטר</label>
+                  <select
+                    disabled={isLoadingContent}
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 focus:ring-2 focus:ring-cyan-500 outline-none transition-all disabled:opacity-50"
+                  >
+                    <option value="A">סמסטר א' (A)</option>
+                    <option value="B">סמסטר ב' (B)</option>
+                    <option value="Summer">סמסטר קיץ (Summer)</option>
+                  </select>
                 </div>
               </div>
 
