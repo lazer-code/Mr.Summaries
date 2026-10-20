@@ -1,11 +1,149 @@
-import { useEffect, useState, useMemo, useDeferredValue, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useDeferredValue, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Search, BookOpen, Plus, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { CourseModal } from '../components/CourseModal';
-import { formatSemester, formatYear, sortCourses } from '../utils/courseFormatters';
+import { 
+  formatSemester, 
+  formatYear, 
+  groupCoursesByYearAndSemester,
+  YearCourseGroup 
+} from '../utils/courseFormatters';
+
+interface GroupedCourseSectionProps {
+  groups: YearCourseGroup[];
+  enrolledCourseIds: string[];
+  enrollments: Record<string, string>;
+  toggleEnrollment: (courseId: string, enrollmentId: string | null) => void;
+  isEnrolledList?: boolean;
+  emptyMessage: string;
+  user: any;
+  containerVariants: any;
+  itemVariants: any;
+}
+
+const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
+  groups,
+  enrolledCourseIds,
+  enrollments,
+  toggleEnrollment,
+  isEnrolledList = false,
+  emptyMessage,
+  user,
+  containerVariants,
+  itemVariants
+}) => {
+  if (groups.length === 0) {
+    return (
+      <motion.div variants={itemVariants} className="p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm opacity-60 text-center">
+        <p className="text-zinc-400 text-sm">{emptyMessage}</p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-10">
+      {groups.map((yearGroup) => (
+        <div key={yearGroup.yearLabel} className="space-y-6">
+          {/* כותרת שנה */}
+          <div className="flex items-center gap-3 pb-3 border-b border-zinc-800">
+            <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400 font-bold text-sm shadow-sm shrink-0">
+              {yearGroup.yearNumeric ? `ש${['א', 'ב', 'ג', 'ד'][yearGroup.yearNumeric - 1] || yearGroup.yearNumeric}` : '•'}
+            </div>
+            <div className="flex items-baseline gap-2.5">
+              <h3 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
+                {yearGroup.yearLabel}
+              </h3>
+              <span className="text-xs text-zinc-500 font-medium">
+                ({yearGroup.totalCoursesCount} {yearGroup.totalCoursesCount === 1 ? 'קורס' : 'קורסים'})
+              </span>
+            </div>
+          </div>
+
+          {/* סמסטרים בתוך השנה */}
+          <div className="space-y-6 sm:pr-2">
+            {yearGroup.semesters.map((semGroup) => (
+              <div key={semGroup.semesterKey} className="space-y-3">
+                {/* כותרת סמסטר */}
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400/90 shrink-0"></div>
+                  <h4 className="text-sm sm:text-base font-semibold text-cyan-300">
+                    {semGroup.semesterLabel}
+                  </h4>
+                  <span className="text-xs text-zinc-500">
+                    ({semGroup.courses.length})
+                  </span>
+                </div>
+
+                {/* גריד קורסים ממוין אלפבתית */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {semGroup.courses.map((course) => {
+                    const isEnrolled = enrolledCourseIds.includes(course.$id);
+                    return (
+                      <motion.div key={course.$id} variants={itemVariants}>
+                        <div className="block group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all">
+                          <div className="flex justify-between items-start mb-2">
+                            <Link to={`/course/${course.$id}`} className="min-w-0 flex-1 ml-2">
+                              <h3 className="text-xl font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors truncate">
+                                {course.name}
+                              </h3>
+                            </Link>
+                            <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
+                              <span className={`text-xs font-mono px-2 py-0.5 rounded-md ${
+                                isEnrolledList 
+                                  ? 'bg-cyan-900/50 text-cyan-300' 
+                                  : 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
+                              }`}>
+                                {course.number}
+                              </span>
+                              {course.year && (
+                                <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                                  {formatYear(course.year)}
+                                </span>
+                              )}
+                              {(course.Semester || course.semester) && (
+                                <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
+                                  {formatSemester(course.Semester || course.semester)}
+                                </span>
+                              )}
+                              {user && (
+                                <button 
+                                  type="button"
+                                  onClick={() => toggleEnrollment(course.$id, enrollments[course.$id] || null)} 
+                                  className={`p-1 rounded-lg transition-colors mr-1 cursor-pointer ${
+                                    isEnrolled
+                                      ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40'
+                                      : 'text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700/40'
+                                  }`}
+                                  title={isEnrolled ? 'הסר מהקורסים שלי' : 'הוסף לקורסים שלי'}
+                                >
+                                  {isEnrolled ? (
+                                    <BookmarkCheck className="w-5 h-5" />
+                                  ) : (
+                                    <BookmarkPlus className="w-5 h-5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-zinc-400 group-hover:text-zinc-300 text-sm line-clamp-2 transition-colors">
+                            לחץ לצפייה בסילבוס, סיכומים, הגדרות ומשפטים.
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </motion.div>
+  );
+};
 
 const Home = () => {
   const { user, isAdmin } = useAuthStore();
@@ -21,9 +159,7 @@ const Home = () => {
     try {
       setErrorMsg(null);
       const res = await api.getCourses();
-      // Sort by year (descending), semester (ascending), name (ascending)
-      const sorted = [...res.documents].sort(sortCourses);
-      setCourses(sorted);
+      setCourses(res.documents);
 
       // Fetch enrollments if user is logged in
       if (user) {
@@ -38,7 +174,6 @@ const Home = () => {
           setEnrollments(map);
         } catch (e: any) {
           console.error('Error fetching enrollments', e);
-          // If it's a 404 or index error, show a more helpful message in console
           if (e.code === 404) {
             console.warn('Collection "enrollments" not found. Check your collection ID.');
           } else if (e.message?.includes('index')) {
@@ -88,20 +223,33 @@ const Home = () => {
     fetchCourses();
   }, [fetchCourses, user]);
 
-  const enrolledCourses = useMemo(() => {
-    return courses
-      .filter(c => enrolledCourseIds.includes(c.$id))
-      .sort(sortCourses);
-  }, [courses, enrolledCourseIds]);
+  const searchNormalized = deferredSearch.trim().toLowerCase();
 
-  const filteredCourses = useMemo(() => {
-    return courses
-      .filter(c => 
-        (c.name.includes(deferredSearch) || c.number.includes(deferredSearch)) &&
-        !enrolledCourseIds.includes(c.$id)
-      )
-      .sort(sortCourses);
-  }, [courses, deferredSearch, enrolledCourseIds]);
+  // Enrolled courses filtered by search and grouped by Year -> Semester -> Alphabetical
+  const enrolledGroups = useMemo(() => {
+    const list = courses.filter(c => {
+      if (!enrolledCourseIds.includes(c.$id)) return false;
+      if (!searchNormalized) return true;
+      return (
+        (c.name && c.name.toLowerCase().includes(searchNormalized)) ||
+        (c.number && c.number.toLowerCase().includes(searchNormalized))
+      );
+    });
+    return groupCoursesByYearAndSemester(list);
+  }, [courses, enrolledCourseIds, searchNormalized]);
+
+  // All / other courses filtered by search and grouped by Year -> Semester -> Alphabetical
+  const allCourseGroups = useMemo(() => {
+    const list = courses.filter(c => {
+      if (user && enrolledCourseIds.includes(c.$id)) return false;
+      if (!searchNormalized) return true;
+      return (
+        (c.name && c.name.toLowerCase().includes(searchNormalized)) ||
+        (c.number && c.number.toLowerCase().includes(searchNormalized))
+      );
+    });
+    return groupCoursesByYearAndSemester(list);
+  }, [courses, enrolledCourseIds, user, searchNormalized]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -159,7 +307,7 @@ const Home = () => {
           >
             <button 
               onClick={() => setIsCourseModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer"
             >
               <Plus className="w-5 h-5" />
               הוסף קורס
@@ -167,7 +315,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        <div className="mt-12 space-y-8 pb-32">
+        <div className="mt-12 space-y-12 pb-32">
           {errorMsg && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -185,111 +333,36 @@ const Home = () => {
                 <BookOpen className="w-6 h-6 text-cyan-500" />
                 הקורסים שלי
               </h2>
-              <motion.div 
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              >
-                {enrolledCourses.length > 0 ? (
-                  enrolledCourses.map((course) => (
-                    <motion.div key={course.$id} variants={itemVariants}>
-                      <div 
-                        className="block group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <Link to={`/course/${course.$id}`}>
-                            <h3 className="text-xl font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
-                              {course.name}
-                            </h3>
-                          </Link>
-                          <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                            <span className="text-xs font-mono bg-cyan-900/50 text-cyan-300 px-2 py-0.5 rounded-md">
-                              {course.number}
-                            </span>
-                            {course.year && (
-                              <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                                {formatYear(course.year)}
-                              </span>
-                            )}
-                            {(course.Semester || course.semester) && (
-                              <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                                {formatSemester(course.Semester || course.semester)}
-                              </span>
-                            )}
-                            <button onClick={() => toggleEnrollment(course.$id, enrollments[course.$id] || null)} className="text-emerald-500 hover:text-emerald-400 transition-colors mr-1">
-                              <BookmarkCheck className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-cyan-300/70 text-sm line-clamp-2">
-                          לחץ לצפייה בסילבוס, סיכומים, הגדרות ומשפטים.
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <motion.div variants={itemVariants} className="p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm opacity-60 col-span-full">
-                    <p className="text-zinc-400 text-sm">אין קורסים רשומים עדיין.</p>
-                  </motion.div>
-                )}
-              </motion.div>
+              <GroupedCourseSection
+                groups={enrolledGroups}
+                enrolledCourseIds={enrolledCourseIds}
+                enrollments={enrollments}
+                toggleEnrollment={toggleEnrollment}
+                isEnrolledList={true}
+                emptyMessage={searchNormalized ? 'לא נמצאו קורסים רשומים התואמים לחיפוש.' : 'אין קורסים רשומים עדיין.'}
+                user={user}
+                containerVariants={containerVariants}
+                itemVariants={itemVariants}
+              />
             </section>
           )}
 
           <section>
             <h2 className="text-2xl font-bold mb-6 text-zinc-100 flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-zinc-500" />
-              כל הקורסים
+              {user ? 'קורסים נוספים' : 'כל הקורסים'}
             </h2>
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            >
-              {filteredCourses.map((course) => (
-                <motion.div key={course.$id} variants={itemVariants}>
-                  <div 
-                    className="block group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <Link to={`/course/${course.$id}`}>
-                        <h3 className="text-xl font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
-                          {course.name}
-                        </h3>
-                      </Link>
-                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                        <span className="text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                          {course.number}
-                        </span>
-                        {course.year && (
-                          <span className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                            {formatYear(course.year)}
-                          </span>
-                        )}
-                        {(course.Semester || course.semester) && (
-                          <span className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 rounded-md">
-                            {formatSemester(course.Semester || course.semester)}
-                          </span>
-                        )}
-                        <button onClick={() => toggleEnrollment(course.$id, null)} className="text-cyan-500 hover:text-cyan-400 transition-colors mr-1">
-                          <BookmarkPlus className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-zinc-400 text-sm line-clamp-2">
-                      לחץ לצפייה בסילבוס, סיכומים, הגדרות ומשפטים.
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-              {filteredCourses.length === 0 && (
-                <motion.div variants={itemVariants} className="col-span-full text-center py-12 text-zinc-500">
-                  לא נמצאו קורסים התואמים את החיפוש.
-                </motion.div>
-              )}
-            </motion.div>
+            <GroupedCourseSection
+              groups={allCourseGroups}
+              enrolledCourseIds={enrolledCourseIds}
+              enrollments={enrollments}
+              toggleEnrollment={toggleEnrollment}
+              isEnrolledList={false}
+              emptyMessage={searchNormalized ? 'לא נמצאו קורסים התואמים את החיפוש.' : 'אין קורסים זמינים.'}
+              user={user}
+              containerVariants={containerVariants}
+              itemVariants={itemVariants}
+            />
           </section>
         </div>
       </motion.div>
