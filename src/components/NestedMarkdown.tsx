@@ -71,9 +71,18 @@ import remarkMark, { markHandler } from './remarkMark';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const proseClasses = "prose prose-zinc prose-invert max-w-none prose-headings:font-bold prose-h1:text-cyan-400 prose-h2:text-teal-400 prose-h3:text-emerald-400 prose-h4:text-amber-400 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-emerald-400 prose-code:text-pink-400 prose-code:bg-pink-900/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-700 prose-blockquote:border-s-4 prose-blockquote:border-cyan-500 prose-blockquote:bg-cyan-900/20 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-e-lg prose-blockquote:text-cyan-200 prose-li:marker:text-cyan-500 prose-img:rounded-xl prose-img:shadow-md";
+const proseClasses = "prose prose-zinc prose-invert max-w-none break-words prose-headings:break-words prose-headings:font-bold prose-h1:text-cyan-400 prose-h2:text-teal-400 prose-h3:text-emerald-400 prose-h4:text-amber-400 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-emerald-400 prose-code:text-pink-400 prose-code:bg-pink-900/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-700 prose-blockquote:border-s-4 prose-blockquote:border-cyan-500 prose-blockquote:bg-cyan-900/20 prose-blockquote:py-2 prose-blockquote:px-3 sm:px-4 prose-blockquote:rounded-e-lg prose-blockquote:text-cyan-200 prose-li:marker:text-cyan-500 prose-img:rounded-xl prose-img:shadow-md prose-img:max-w-full";
 
 const markdownComponents = {
+  table({ children, ...props }: any) {
+    return (
+      <div className="w-full overflow-x-auto my-4 rounded-xl border border-zinc-800 -webkit-overflow-scrolling-touch">
+        <table className="min-w-full divide-y divide-zinc-800" {...props}>
+          {children}
+        </table>
+      </div>
+    );
+  },
   pre({ children, node, ...props }: any) {
     // For mermaid and svg blocks the `code` component returns its own
     // styled component; bypass the `<pre>` wrapper so its
@@ -86,32 +95,38 @@ const markdownComponents = {
     if (codeClass.startsWith('language-')) {
       return <>{children}</>;
     }
-    return <pre {...props}>{children}</pre>;
+    return <pre className="overflow-x-auto max-w-full" {...props}>{children}</pre>;
   },
   code({ node, inline, className, children, ...props }: any) {
     const match = /language-(\w+)/.exec(className || '');
     if (!inline && match && match[1] === 'mermaid') {
-      return <Mermaid chart={String(children).replace(/\n$/, '')} />;
+      return (
+        <div className="overflow-x-auto my-4 max-w-full">
+          <Mermaid chart={String(children).replace(/\n$/, '')} />
+        </div>
+      );
     }
     if (!inline && match && match[1] === 'svg') {
-      return <span dangerouslySetInnerHTML={{ __html: String(children).replace(/\n$/, '') }} className="svg-renderer" />;
+      return <span dangerouslySetInnerHTML={{ __html: String(children).replace(/\n$/, '') }} className="svg-renderer overflow-x-auto block my-2" />;
     }
     if (!inline && match) {
       return (
-        <SyntaxHighlighter
-          {...props}
-          style={vscDarkPlus}
-          language={match[1]}
-          PreTag="div"
-          CodeTag="span"
-          className="rounded-md !my-4 !bg-zinc-900 border border-zinc-700"
-        >
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
+        <div className="overflow-x-auto max-w-full my-4 rounded-xl">
+          <SyntaxHighlighter
+            {...props}
+            style={vscDarkPlus}
+            language={match[1]}
+            PreTag="div"
+            CodeTag="span"
+            className="rounded-xl !my-0 !bg-zinc-900 border border-zinc-700 text-xs sm:text-sm"
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </div>
       );
     }
     return (
-      <code className={className} {...props}>
+      <code className={`${className || ''} break-all`} {...props}>
         {children}
       </code>
     );
@@ -121,13 +136,13 @@ const markdownComponents = {
 const SectionRenderer = React.memo(({ node, index }: { node: SectionNode, index: number }) => {
   let containerClasses = '';
   if (node.level === 1) {
-    containerClasses = 'p-6 sm:p-8 rounded-3xl bg-zinc-900/60 border border-zinc-700/50 shadow-sm mb-8 backdrop-blur-xl scroll-mt-24';
+    containerClasses = 'p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-zinc-900/60 border border-zinc-700/50 shadow-sm mb-6 sm:mb-8 backdrop-blur-xl scroll-mt-24';
   } else if (node.level === 2) {
-    containerClasses = 'p-5 sm:p-6 rounded-2xl bg-zinc-800/50 border border-zinc-600/50 shadow-sm mt-6 backdrop-blur-lg scroll-mt-24';
+    containerClasses = 'p-3.5 sm:p-6 rounded-xl sm:rounded-2xl bg-zinc-800/50 border border-zinc-600/50 shadow-sm mt-4 sm:mt-6 backdrop-blur-lg scroll-mt-24';
   } else if (node.level === 3) {
-    containerClasses = 'p-4 sm:p-5 rounded-xl bg-zinc-700/40 border border-zinc-500/50 shadow-sm mt-4 backdrop-blur-md scroll-mt-24';
+    containerClasses = 'p-3 sm:p-5 rounded-lg sm:rounded-xl bg-zinc-700/40 border border-zinc-500/50 shadow-sm mt-3 sm:mt-4 backdrop-blur-md scroll-mt-24';
   } else {
-    containerClasses = 'p-3 sm:p-4 rounded-lg bg-zinc-600/30 border border-zinc-400/50 shadow-sm mt-4 backdrop-blur-sm scroll-mt-24';
+    containerClasses = 'p-2.5 sm:p-4 rounded-lg bg-zinc-600/30 border border-zinc-400/50 shadow-sm mt-3 sm:mt-4 backdrop-blur-sm scroll-mt-24';
   }
 
   return (

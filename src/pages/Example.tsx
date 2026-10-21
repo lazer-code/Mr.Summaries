@@ -96,31 +96,31 @@ const Example = () => {
   const courseNumber = example?.courses?.number || (Array.isArray(example?.courses) ? example.courses[0]?.number : '');
 
   return (
-    <div className="max-w-5xl mx-auto px-4" dir="rtl">
-      <div className="flex justify-between items-start mb-8">
-        <div>
+    <div className="max-w-5xl mx-auto px-1 sm:px-4" dir="rtl">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8">
+        <div className="min-w-0 flex-1">
           {courseId ? (
-            <Link to={`/course/${courseId}?tab=examples`} className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-4">
-              <ArrowRight className="w-4 h-4" />
+            <Link to={`/course/${courseId}?tab=examples`} className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-2 sm:mb-4 text-xs sm:text-sm font-medium min-h-[36px]">
+              <ArrowRight className="w-4 h-4 shrink-0" />
               חזרה לדוגמאות
             </Link>
           ) : (
-            <Link to="/" className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-4">
-              <ArrowRight className="w-4 h-4" />
+            <Link to="/" className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-2 sm:mb-4 text-xs sm:text-sm font-medium min-h-[36px]">
+              <ArrowRight className="w-4 h-4 shrink-0" />
               חזרה לדף הבית
             </Link>
           )}
-          <h1 className="text-4xl font-bold text-zinc-50 mb-2">
+          <h1 className="text-2xl sm:text-4xl font-bold text-zinc-50 mb-2 break-words leading-tight">
             {example.name}
           </h1>
         </div>
         {isAdmin && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 transition-colors"
+            className="self-start flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 active:bg-zinc-650 transition-colors border border-zinc-700/60 text-xs sm:text-sm font-medium min-h-[44px] cursor-pointer shrink-0"
           >
-            <Edit2 className="w-4 h-4" />
-            ערוך דוגמה
+            <Edit2 className="w-4 h-4 shrink-0" />
+            <span>ערוך דוגמה</span>
           </button>
         )}
       </div>

@@ -14,7 +14,7 @@ export const AddPageModal: React.FC<AddPageModalProps> = React.memo(({ isOpen, o
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" dir="rtl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6" dir="rtl">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -26,19 +26,20 @@ export const AddPageModal: React.FC<AddPageModalProps> = React.memo(({ isOpen, o
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-800 p-6"
+            className="relative w-full max-w-md bg-zinc-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-800 p-5 sm:p-6"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-zinc-50">הוסף דף חדש</h2>
+            <div className="flex items-center justify-between mb-5 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-zinc-50">הוסף דף חדש</h2>
               <button
                 onClick={onClose}
-                className="p-2 text-zinc-500 hover:bg-zinc-800 rounded-full transition-colors"
+                className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                aria-label="סגור"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               <button
                 onClick={() => onSelect('summary')}
                 className="w-full flex items-center gap-4 p-4 rounded-xl border border-zinc-700/80 bg-zinc-800/40 hover:bg-zinc-800 transition-colors"

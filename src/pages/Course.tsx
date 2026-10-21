@@ -243,62 +243,62 @@ const Course = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4" dir="rtl">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-4xl font-bold text-zinc-100 mb-3">
+    <div className="max-w-5xl mx-auto px-1 sm:px-4" dir="rtl">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-4xl font-bold text-zinc-100 mb-2.5 sm:mb-3 break-words leading-tight">
             {course.name}
           </h1>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-block bg-cyan-900/50 text-cyan-300 px-3 py-1 rounded-lg text-sm font-mono font-medium">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="inline-block bg-cyan-900/50 text-cyan-300 px-2.5 py-1 rounded-lg text-xs sm:text-sm font-mono font-medium">
               {course.number}
             </span>
             {course.year && (
-              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-medium">
+              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium">
                 {formatYear(course.year)}
               </span>
             )}
             {(course.Semester || course.semester) && (
-              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-3 py-1 rounded-lg text-sm font-medium">
+              <span className="inline-block bg-zinc-800 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium">
                 {formatSemester(course.Semester || course.semester)}
               </span>
             )}
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
           <button 
             onClick={toggleEnrollment}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
+            className={`flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl transition-colors min-h-[44px] text-sm font-medium cursor-pointer ${
               isEnrolled 
-                ? 'bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50' 
-                : 'bg-cyan-900/30 text-cyan-400 hover:bg-cyan-900/50'
+                ? 'bg-emerald-900/40 text-emerald-300 hover:bg-emerald-900/60 border border-emerald-800/50' 
+                : 'bg-cyan-900/40 text-cyan-300 hover:bg-cyan-900/60 border border-cyan-800/50'
             }`}
           >
-            {isEnrolled ? <BookmarkCheck className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
-            {isEnrolled ? 'רשום לקורס' : 'הירשם לקורס'}
+            {isEnrolled ? <BookmarkCheck className="w-4 h-4 shrink-0" /> : <BookmarkPlus className="w-4 h-4 shrink-0" />}
+            <span>{isEnrolled ? 'רשום לקורס' : 'הירשם לקורס'}</span>
           </button>
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsAddPageModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 active:bg-cyan-800 transition-colors shadow-sm min-h-[44px] text-sm font-medium cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                הוסף דף
+                <Plus className="w-4 h-4 shrink-0" />
+                <span>הוסף דף</span>
               </button>
               <button 
                 onClick={() => setIsCourseModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 transition-colors"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 active:bg-zinc-650 transition-colors border border-zinc-700/60 min-h-[44px] text-sm font-medium cursor-pointer"
               >
-                <Edit2 className="w-4 h-4" />
-                ערוך קורס
+                <Edit2 className="w-4 h-4 shrink-0" />
+                <span>ערוך</span>
               </button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8 border-b border-zinc-800 pb-4">
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-6 sm:mb-8 border-b border-zinc-800 no-scrollbar -mx-2 px-2 sm:mx-0 sm:px-0">
         {tabs.filter(t => t.show).map(tab => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
@@ -307,29 +307,29 @@ const Course = () => {
             <Link
               key={tab.id}
               to={`/course/${id}?tab=${tab.id}`}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors shrink-0 whitespace-nowrap min-h-[44px] ${
                 isActive 
                   ? 'bg-cyan-600 text-white shadow-sm' 
-                  : 'text-zinc-400 hover:bg-zinc-800'
+                  : 'text-zinc-400 hover:bg-zinc-800 active:bg-zinc-850'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{tab.label}</span>
             </Link>
           );
         })}
       </div>
 
       {currentTab === 'summaries' ? (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-zinc-400 mr-3" />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-zinc-400" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-12 py-3 border border-zinc-700/50 rounded-xl leading-5 bg-zinc-800/40 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm transition-all shadow-sm text-zinc-100"
+                className="block w-full pl-4 pr-11 sm:pr-12 py-3 border border-zinc-700/60 rounded-xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-all shadow-sm text-zinc-100 min-h-[44px]"
                 placeholder="חיפוש סיכומים..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -337,38 +337,38 @@ const Course = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredSummaries.map((summary) => (
               <Link 
                 key={summary.$id} 
                 to={`/summary/${summary.$id}`}
-                className="group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all flex flex-col items-start gap-4"
+                className="group p-4 sm:p-6 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500/70 transition-all flex flex-col items-start gap-3 sm:gap-4 min-h-[44px]"
               >
-                <div className="p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-110 transition-transform">
-                  <FileText className="w-6 h-6" />
+                <div className="p-2.5 sm:p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-105 transition-transform">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-base sm:text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors break-words">
                   {summary.name}
                 </h3>
               </Link>
             ))}
             {filteredSummaries.length === 0 && (
-              <div className="col-span-full text-center py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50">
+              <div className="col-span-full text-center py-10 sm:py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50 text-sm">
                 לא נמצאו סיכומים התואמים את החיפוש.
               </div>
             )}
           </div>
         </div>
       ) : currentTab === 'lectures' ? (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-zinc-400 mr-3" />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-zinc-400" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-12 py-3 border border-zinc-700/50 rounded-xl leading-5 bg-zinc-800/40 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm transition-all shadow-sm text-zinc-100"
+                className="block w-full pl-4 pr-11 sm:pr-12 py-3 border border-zinc-700/60 rounded-xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-all shadow-sm text-zinc-100 min-h-[44px]"
                 placeholder="חיפוש הרצאות..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -376,38 +376,38 @@ const Course = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredLectures.map((lecture) => (
               <Link 
                 key={lecture.$id} 
                 to={`/lecture/${lecture.$id}`}
-                className="group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all flex flex-col items-start gap-4"
+                className="group p-4 sm:p-6 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500/70 transition-all flex flex-col items-start gap-3 sm:gap-4 min-h-[44px]"
               >
-                <div className="p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-110 transition-transform">
-                  <List className="w-6 h-6" />
+                <div className="p-2.5 sm:p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-105 transition-transform">
+                  <List className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-base sm:text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors break-words">
                   {lecture.name}
                 </h3>
               </Link>
             ))}
             {filteredLectures.length === 0 && (
-              <div className="col-span-full text-center py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50">
+              <div className="col-span-full text-center py-10 sm:py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50 text-sm">
                 לא נמצאו הרצאות התואמים את החיפוש.
               </div>
             )}
           </div>
         </div>
       ) : currentTab === 'examples' ? (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="relative w-full max-w-md">
-              <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-zinc-400 mr-3" />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-zinc-400" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-12 py-3 border border-zinc-700/50 rounded-xl leading-5 bg-zinc-800/40 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm transition-all shadow-sm text-zinc-100"
+                className="block w-full pl-4 pr-11 sm:pr-12 py-3 border border-zinc-700/60 rounded-xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-all shadow-sm text-zinc-100 min-h-[44px]"
                 placeholder="חיפוש דוגמאות..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -415,23 +415,23 @@ const Course = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredExamples.map((example) => (
               <Link 
                 key={example.$id} 
                 to={`/example/${example.$id}`}
-                className="group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all flex flex-col items-start gap-4"
+                className="group p-4 sm:p-6 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500/70 transition-all flex flex-col items-start gap-3 sm:gap-4 min-h-[44px]"
               >
-                <div className="p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-110 transition-transform">
-                  <List className="w-6 h-6" />
+                <div className="p-2.5 sm:p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-105 transition-transform">
+                  <List className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-base sm:text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors break-words">
                   {example.name}
                 </h3>
               </Link>
             ))}
             {filteredExamples.length === 0 && (
-              <div className="col-span-full text-center py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50">
+              <div className="col-span-full text-center py-10 sm:py-12 text-zinc-500 bg-zinc-900/40 backdrop-blur-md rounded-2xl border border-zinc-800/50 text-sm">
                 לא נמצאו דוגמאות התואמים את החיפוש.
               </div>
             )}

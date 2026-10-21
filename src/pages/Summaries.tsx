@@ -52,25 +52,25 @@ const Summaries = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto" dir="rtl">
-      <div className="mb-8">
-        <Link to={`/course/${id}`} className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-4">
-          <ArrowRight className="w-4 h-4" />
+    <div className="max-w-5xl mx-auto px-1 sm:px-4" dir="rtl">
+      <div className="mb-6 sm:mb-8">
+        <Link to={`/course/${id}`} className="inline-flex items-center gap-2 text-cyan-400 hover:underline mb-2 sm:mb-4 text-xs sm:text-sm font-medium min-h-[36px]">
+          <ArrowRight className="w-4 h-4 shrink-0" />
           חזרה לקורס
         </Link>
-        <h1 className="text-4xl font-bold text-zinc-100 mb-2">
+        <h1 className="text-2xl sm:text-4xl font-bold text-zinc-100 mb-2 break-words leading-tight">
           סיכומים: {course?.name}
         </h1>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center mb-6 sm:mb-8">
         <div className="relative w-full max-w-md">
-          <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-zinc-400 mr-3" />
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-zinc-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-12 py-3 border border-zinc-700/50 rounded-xl leading-5 bg-zinc-800/40 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm transition-all shadow-sm text-zinc-100"
+            className="block w-full pl-4 pr-11 sm:pr-12 py-2.5 sm:py-3 border border-zinc-700/60 rounded-xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm transition-all shadow-sm text-zinc-100 min-h-[44px]"
             placeholder="חיפוש סיכומים..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -80,31 +80,31 @@ const Summaries = () => {
         {isAdmin && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 active:bg-cyan-800 transition-colors shadow-sm whitespace-nowrap text-sm font-medium min-h-[44px] cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4 shrink-0" />
             הוסף סיכום
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {filteredSummaries.map((summary) => (
           <Link 
             key={summary.$id} 
             to={`/summary/${summary.$id}`}
-            className="group p-6 rounded-2xl bg-zinc-800/40 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500 transition-all flex flex-col items-start gap-4"
+            className="group p-4 sm:p-6 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-700/50 shadow-sm hover:shadow-md hover:border-cyan-500/70 transition-all flex flex-col items-start gap-3 sm:gap-4 min-h-[44px]"
           >
-            <div className="p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-110 transition-transform">
-              <FileText className="w-6 h-6" />
+            <div className="p-2.5 sm:p-3 bg-cyan-900/30 rounded-xl text-cyan-400 group-hover:scale-105 transition-transform">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors">
+            <h3 className="text-base sm:text-lg font-semibold text-zinc-100 group-hover:text-cyan-400 transition-colors break-words">
               {summary.name}
             </h3>
           </Link>
         ))}
         {filteredSummaries.length === 0 && (
-          <div className="col-span-full text-center py-12 text-zinc-400 bg-zinc-800/60 backdrop-blur-md rounded-2xl border border-zinc-700/50">
+          <div className="col-span-full text-center py-10 sm:py-12 text-zinc-400 bg-zinc-800/60 backdrop-blur-md rounded-2xl border border-zinc-700/50 text-sm">
             לא נמצאו סיכומים התואמים את החיפוש.
           </div>
         )}

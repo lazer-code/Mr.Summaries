@@ -40,12 +40,12 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       {groups.map((yearGroup) => (
-        <div key={yearGroup.yearLabel} className="space-y-6">
+        <div key={yearGroup.yearLabel} className="space-y-4 sm:space-y-6">
           {/* כותרת שנה - ללא אייקון */}
-          <div className="flex items-baseline gap-2.5 pb-3 border-b border-zinc-850 border-zinc-800">
-            <h3 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">
+          <div className="flex items-baseline gap-2 pb-2.5 border-b border-zinc-800">
+            <h3 className="text-lg sm:text-2xl font-bold text-zinc-100 tracking-tight">
               {yearGroup.yearLabel}
             </h3>
             <span className="text-xs text-zinc-500 font-medium">
@@ -54,13 +54,13 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
           </div>
 
           {/* סמסטרים בתוך השנה */}
-          <div className="space-y-6 sm:pr-2">
+          <div className="space-y-5 sm:space-y-6 sm:pr-2">
             {yearGroup.semesters.map((semGroup) => (
-              <div key={semGroup.semesterKey} className="space-y-3">
+              <div key={semGroup.semesterKey} className="space-y-2.5 sm:space-y-3">
                 {/* כותרת סמסטר */}
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-cyan-400/90 shrink-0"></div>
-                  <h4 className="text-sm sm:text-base font-semibold text-cyan-300">
+                  <h4 className="text-xs sm:text-base font-semibold text-cyan-300">
                     {semGroup.semesterLabel}
                   </h4>
                   <span className="text-xs text-zinc-500">
@@ -69,13 +69,13 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                 </div>
 
                 {/* בלוקי קורסים - גלויים, ברורים וממוינים אלפבתית */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   {semGroup.courses.map((course) => {
                     const isEnrolled = enrolledCourseIds.includes(course.$id);
                     return (
                       <div 
                         key={course.$id}
-                        className="group relative p-5 sm:p-6 rounded-2xl bg-zinc-800/70 hover:bg-zinc-800/95 border border-zinc-700/60 hover:border-cyan-500/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                        className="group relative p-4 sm:p-6 rounded-2xl bg-zinc-800/70 hover:bg-zinc-800/95 border border-zinc-700/60 hover:border-cyan-500/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
                       >
                         {/* קישור לחיץ על כל שטח הכרטיס */}
                         <Link 
@@ -87,7 +87,7 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                         {/* שורה עליונה: שם הקורס (לא נחתך) וכפתור שמירה למועדפים */}
                         <div className="relative z-10 flex items-start justify-between gap-3">
                           <Link to={`/course/${course.$id}`} className="min-w-0 flex-1">
-                            <h3 className="text-lg sm:text-xl font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors leading-snug break-words">
+                            <h3 className="text-base sm:text-xl font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors leading-snug break-words">
                               {course.name}
                             </h3>
                           </Link>
@@ -100,7 +100,7 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                                 e.stopPropagation();
                                 toggleEnrollment(course.$id, enrollments[course.$id] || null);
                               }} 
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                              className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 -mt-2 sm:mr-0 sm:mt-0 ${
                                 isEnrolled
                                   ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40'
                                   : 'text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700/40'
@@ -118,8 +118,8 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                         </div>
 
                         {/* נתוני הקורס: מספר קורס, שנה, סמסטר - מוצגים מתחת לשם הקורס */}
-                        <div className="relative z-10 mt-3.5 flex items-center gap-2 flex-wrap">
-                          <span className={`text-xs font-mono px-2.5 py-1 rounded-md font-semibold ${
+                        <div className="relative z-10 mt-3 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <span className={`text-xs font-mono px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md font-semibold ${
                             isEnrolledList 
                               ? 'bg-cyan-900/50 text-cyan-300 border border-cyan-800/60' 
                               : 'bg-zinc-800 text-zinc-300 border border-zinc-700/60'
@@ -127,12 +127,12 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                             {course.number}
                           </span>
                           {course.year && (
-                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-md font-medium">
+                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md font-medium">
                               {formatYear(course.year)}
                             </span>
                           )}
                           {(course.Semester || course.semester) && (
-                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2.5 py-1 rounded-md font-medium">
+                            <span className="text-xs bg-zinc-800/90 text-zinc-300 border border-zinc-700/60 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md font-medium">
                               {formatSemester(course.Semester || course.semester)}
                             </span>
                           )}
@@ -257,24 +257,24 @@ const Home = () => {
   }, [courses, enrolledCourseIds, user, searchNormalized]);
 
   return (
-    <div className="relative min-h-[80vh] flex flex-col items-center pt-20 sm:pt-28" dir="rtl">
+    <div className="relative min-h-[80vh] flex flex-col items-center pt-2 sm:pt-10 px-1 sm:px-4" dir="rtl">
       <div className="w-full max-w-3xl z-30">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tight bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             Mr.Summaries
           </h1>
-          <p className="text-zinc-400 mt-2 text-sm sm:text-base">
+          <p className="text-zinc-400 mt-2 text-xs sm:text-base max-w-md mx-auto leading-relaxed">
             סילבוסים, סיכומים, הגדרות ומשפטים ממוינים לפי שנים וסמסטרים
           </p>
         </div>
 
         <div className="relative group">
-          <div className="absolute inset-y-0 right-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-zinc-400 mr-3" />
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-zinc-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-12 py-3.5 sm:py-4 border border-zinc-700/60 rounded-2xl leading-5 bg-zinc-800/60 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100"
+            className="block w-full pl-4 pr-11 sm:pr-12 py-3 sm:py-4 border border-zinc-700/60 rounded-xl sm:rounded-2xl leading-5 bg-zinc-850 bg-zinc-800/70 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100 min-h-[48px]"
             placeholder="חיפוש קורסים לפי שם או מספר..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -282,10 +282,10 @@ const Home = () => {
         </div>
 
         {isAdmin && (
-          <div className="mt-5 flex justify-end">
+          <div className="mt-4 flex justify-end">
             <button 
               onClick={() => setIsCourseModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 active:bg-cyan-800 transition-colors shadow-sm cursor-pointer font-medium text-sm min-h-[44px]"
             >
               <Plus className="w-4 h-4" />
               הוסף קורס
@@ -293,17 +293,17 @@ const Home = () => {
           </div>
         )}
 
-        <div className="mt-10 space-y-12 pb-32">
+        <div className="mt-8 sm:mt-10 space-y-10 sm:space-y-12 pb-24 sm:pb-32">
           {errorMsg && (
-            <div className="p-4 bg-red-900/30 backdrop-blur-md border border-red-800 rounded-xl text-red-400">
+            <div className="p-4 bg-red-900/30 backdrop-blur-md border border-red-800 rounded-xl text-red-400 text-sm">
               <p className="font-bold mb-1">שגיאת התחברות ל-Appwrite:</p>
-              <p className="font-mono text-sm" dir="ltr">{errorMsg}</p>
+              <p className="font-mono text-xs sm:text-sm break-all" dir="ltr">{errorMsg}</p>
             </div>
           )}
 
           {user && (
             <section>
-              <h2 className="text-xl sm:text-2xl font-bold mb-5 text-zinc-100 flex items-center gap-2">
+              <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                 הקורסים שלי
               </h2>
@@ -320,7 +320,7 @@ const Home = () => {
           )}
 
           <section>
-            <h2 className="text-xl sm:text-2xl font-bold mb-5 text-zinc-100 flex items-center gap-2">
+            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
               <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400" />
               {user ? 'קורסים נוספים' : 'כל הקורסים'}
             </h2>

@@ -22,11 +22,10 @@ export const PdfTextRenderer: React.FC<PdfTextRendererProps> = ({ url }) => {
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       if (entries[0]) {
-        // Subtract padding from container width
         const width = entries[0].contentRect.width;
-        // The container has p-4 (1rem) or sm:p-8 (2rem)
-        // We'll use a slightly safer margin
-        setContainerWidth(width - (window.innerWidth < 640 ? 32 : 64));
+        const padding = window.innerWidth < 640 ? 16 : 48;
+        const calculatedWidth = Math.max(240, Math.floor(width - padding));
+        setContainerWidth(calculatedWidth);
       }
     });
 
@@ -43,27 +42,27 @@ export const PdfTextRenderer: React.FC<PdfTextRendererProps> = ({ url }) => {
   }
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center w-full max-w-4xl mx-auto">
-      <div className="w-full flex flex-col items-center gap-6 p-4 sm:p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50 shadow-inner">
+    <div ref={containerRef} className="flex flex-col items-center w-full max-w-4xl mx-auto px-0 sm:px-2">
+      <div className="w-full flex flex-col items-center gap-4 sm:gap-6 p-2 sm:p-8 bg-zinc-950/30 rounded-2xl sm:rounded-[2.5rem] border border-zinc-800/50 shadow-inner overflow-x-auto">
         <Document
           file={url}
           onLoadSuccess={onDocumentLoadSuccess}
           loading={
-            <div className="flex flex-col items-center p-24">
-              <Loader2 className="w-10 h-10 animate-spin text-cyan-600 mb-4" />
-              <span className="text-zinc-500 font-medium">טוען מסמך...</span>
+            <div className="flex flex-col items-center p-12 sm:p-24">
+              <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 animate-spin text-cyan-600 mb-4" />
+              <span className="text-zinc-500 font-medium text-sm">טוען מסמך...</span>
             </div>
           }
           error={
-            <div className="p-12 text-red-500 text-center bg-red-900/10 rounded-3xl border border-red-900/20">
-              <p className="font-bold mb-2">שגיאה בטעינת הקובץ</p>
-              <p className="text-sm opacity-80">וודא שהקישור תקין או נסה להוריד את הקובץ ישירות.</p>
+            <div className="p-6 sm:p-12 text-red-400 text-center bg-red-900/10 rounded-2xl border border-red-900/20 text-sm">
+              <p className="font-bold mb-1.5 sm:mb-2">שגיאה בטעינת הקובץ</p>
+              <p className="text-xs sm:text-sm opacity-80">וודא שהקישור תקין או נסה להוריד את הקובץ ישירות.</p>
             </div>
           }
-          className="flex flex-col items-center justify-center gap-8 w-full"
+          className="flex flex-col items-center justify-center gap-4 sm:gap-8 w-full max-w-full"
         >
           {numPages && Array.from(new Array(numPages), (el, index) => (
-            <div key={`page_${index + 1}`} className="shadow-2xl rounded-xl overflow-hidden border border-zinc-800 bg-white">
+            <div key={`page_${index + 1}`} className="shadow-lg sm:shadow-2xl rounded-lg sm:rounded-xl overflow-hidden border border-zinc-800 bg-white max-w-full">
               <Page 
                 pageNumber={index + 1} 
                 width={containerWidth}
