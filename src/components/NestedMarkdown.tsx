@@ -109,6 +109,34 @@ const decodeSvgDataUri = (dataUri: string): string | null => {
   }
 };
 
+const getSvgDimensions = (svgStr: string): { width?: number; height?: number } => {
+  if (!svgStr) return {};
+  try {
+    const svgTagMatch = svgStr.match(/<svg\b([^>]*)>/i);
+    if (!svgTagMatch) return {};
+    const attrs = svgTagMatch[1];
+
+    const widthMatch = attrs.match(/\bwidth\s*=\s*["']?([\d.]+)(px)?["']?/i);
+    const heightMatch = attrs.match(/\bheight\s*=\s*["']?([\d.]+)(px)?["']?/i);
+
+    let width = widthMatch ? parseFloat(widthMatch[1]) : undefined;
+    let height = heightMatch ? parseFloat(heightMatch[1]) : undefined;
+
+    if ((!width || !height) && attrs.includes('viewBox')) {
+      const vbMatch = attrs.match(/\bviewBox\s*=\s*["']\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)["']/i);
+      if (vbMatch) {
+        const vbWidth = parseFloat(vbMatch[3]);
+        const vbHeight = parseFloat(vbMatch[4]);
+        if (!width && vbWidth) width = vbWidth;
+        if (!height && vbHeight) height = vbHeight;
+      }
+    }
+    return { width, height };
+  } catch {
+    return {};
+  }
+};
+
 const MarkdownImage = ({ src, alt, ...props }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -121,6 +149,10 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
     return decodeSvgDataUri(src);
   }, [src]);
 
+  const dimensions = useMemo(() => {
+    return getSvgDimensions(svgContent || '');
+  }, [svgContent]);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -132,18 +164,17 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
 
   if (hasError && !svgContent) {
     return (
-      <span className="not-prose my-3 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-950/30 border border-rose-800/40 text-rose-300 text-xs">
+      <span className="not-prose my-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-950/30 border border-rose-800/40 text-rose-300 text-xs">
         <span>⚠️ שגיאה בטעינת התמונה</span>
-        {alt && <span className="text-zinc-400">({alt})</span>}
       </span>
     );
   }
 
   return (
-    <span className="not-prose my-5 block text-center">
+    <span className="not-prose my-3 block text-center">
       <span
         onClick={() => setIsOpen(true)}
-        className="group relative inline-flex flex-col items-center justify-center cursor-zoom-in rounded-2xl border border-zinc-700/70 bg-zinc-900/90 p-3 sm:p-4 shadow-lg hover:border-cyan-500/60 hover:shadow-cyan-500/10 transition-all max-w-full"
+        className="group relative inline-block cursor-zoom-in rounded-xl border border-zinc-800/80 hover:border-cyan-500/50 bg-zinc-900/60 p-1.5 transition-all max-w-full shadow-sm hover:shadow-cyan-500/10"
         title="לחץ להגדלה"
         role="button"
         tabIndex={0}
@@ -156,7 +187,21 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
       >
         {svgContent ? (
           <span
-            className="svg-renderer block overflow-x-auto min-w-[140px] min-h-[140px] max-w-full [&>svg]:max-w-full [&>svg]:h-auto [&>svg]:max-h-[500px] [&>svg]:w-auto [&>svg]:min-w-[140px] [&>svg]:min-h-[140px] [&>svg]:mx-auto"
+            className="svg-renderer inline-block max-w-full overflow-hidden [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:block [&>svg]:mx-auto"
+            style={
+              dimensions.width && dimensions.height
+                ? {
+                    width: `${dimensions.width}px`,
+                    height: `${dimensions.height}px`,
+                    maxWidth: '100%',
+                  }
+                : dimensions.width
+                ? {
+                    width: `${dimensions.width}px`,
+                    maxWidth: '100%',
+                  }
+                : undefined
+            }
             dir="ltr"
             dangerouslySetInnerHTML={{ __html: svgContent }}
           />
@@ -167,17 +212,11 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
             loading="eager"
             decoding="sync"
             onError={() => setHasError(true)}
-            className="max-w-full h-auto max-h-[500px] object-contain rounded-xl mx-auto block min-w-[120px] min-h-[120px]"
+            className="max-w-full h-auto object-contain rounded-lg block mx-auto"
             {...cleanProps}
           />
         )}
       </span>
-
-      {alt && alt.trim() && (
-        <span className="block text-xs text-zinc-400 mt-2 text-center font-normal px-2 max-w-xl mx-auto">
-          {alt}
-        </span>
-      )}
 
       {/* Lightbox Modal */}
       {isOpen && (
@@ -192,8 +231,8 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
           >
             {/* Modal Header */}
             <span className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/95 text-zinc-200">
-              <span className="text-sm font-medium truncate max-w-[65%]">
-                {alt || 'תצוגת תמונה'}
+              <span className="text-sm font-medium">
+                תצוגת תמונה
               </span>
               <span className="flex items-center gap-2">
                 <button
