@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useDeferredValue, useCallback } from 'react';
-import { motion } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Search, BookOpen, Plus, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import { api } from '../services/api';
@@ -21,6 +21,30 @@ interface GroupedCourseSectionProps {
   emptyMessage: string;
   user: any;
 }
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 14, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.35,
+      ease: 'easeOut',
+    },
+  },
+};
+
+const gridContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.02,
+    },
+  },
+};
 
 const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
   groups,
@@ -68,14 +92,22 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                   </span>
                 </div>
 
-                {/* בלוקי קורסים - גלויים, ברורים וממוינים אלפבתית */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                {/* בלוקי קורסים - מונפשים ברכות, גלויים, ברורים וממוינים אלפבתית */}
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4"
+                  variants={gridContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
                   {semGroup.courses.map((course) => {
                     const isEnrolled = enrolledCourseIds.includes(course.$id);
                     return (
-                      <div 
+                      <motion.div 
                         key={course.$id}
-                        className="group relative p-4 sm:p-6 rounded-2xl bg-zinc-800/70 hover:bg-zinc-800/95 border border-zinc-700/60 hover:border-cyan-500/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                        variants={cardVariants}
+                        whileHover={{ y: -3, transition: { duration: 0.15 } }}
+                        whileTap={{ scale: 0.99 }}
+                        className="group relative p-4 sm:p-6 rounded-2xl bg-zinc-800/70 hover:bg-zinc-800/95 border border-zinc-700/60 hover:border-cyan-500/80 shadow-sm hover:shadow-lg hover:shadow-cyan-950/20 transition-colors duration-200 flex flex-col justify-between"
                       >
                         {/* קישור לחיץ על כל שטח הכרטיס */}
                         <Link 
@@ -137,10 +169,10 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
                             </span>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
-                </div>
+                </motion.div>
               </div>
             ))}
           </div>
@@ -150,9 +182,53 @@ const GroupedCourseSection: React.FC<GroupedCourseSectionProps> = ({
   );
 };
 
+const CourseSkeleton = () => (
+  <div className="space-y-6 sm:space-y-8 animate-pulse">
+    <div className="h-7 w-32 bg-zinc-800/70 rounded-lg" />
+    <div className="space-y-3">
+      <div className="h-5 w-24 bg-zinc-800/50 rounded-md" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="p-4 sm:p-6 rounded-2xl bg-zinc-800/40 border border-zinc-700/40 space-y-4">
+            <div className="h-6 w-3/4 bg-zinc-700/40 rounded-lg" />
+            <div className="flex gap-2">
+              <div className="h-5 w-16 bg-zinc-700/30 rounded-md" />
+              <div className="h-5 w-14 bg-zinc-700/30 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const heroContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const heroItemVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: 'easeOut',
+    },
+  },
+};
+
 const Home = () => {
   const { user, isAdmin } = useAuthStore();
   const [courses, setCourses] = useState<any[]>([]);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [enrollments, setEnrollments] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
@@ -198,6 +274,8 @@ const Home = () => {
       } else {
         setErrorMsg(error.message || 'Failed to fetch');
       }
+    } finally {
+      setIsInitialLoading(false);
     }
   }, [user]);
 
@@ -258,31 +336,39 @@ const Home = () => {
 
   return (
     <div className="relative min-h-[80vh] flex flex-col items-center pt-2 sm:pt-10 px-1 sm:px-4" dir="rtl">
-      <div className="w-full max-w-3xl z-30">
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            Mr.Summaries
-          </h1>
-          <p className="text-zinc-400 mt-2 text-xs sm:text-base max-w-md mx-auto leading-relaxed">
+      <motion.div 
+        className="w-full max-w-3xl z-30"
+        variants={heroContainerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={heroItemVariants} className="text-center mb-6 sm:mb-8">
+          <div className="relative inline-block">
+            <div className="absolute -inset-3 bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 blur-2xl opacity-60 rounded-full pointer-events-none" />
+            <h1 className="relative text-3xl sm:text-5xl md:text-7xl font-black tracking-tight bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+              Mr.Summaries
+            </h1>
+          </div>
+          <p className="text-zinc-400 mt-2.5 text-xs sm:text-base max-w-md mx-auto leading-relaxed">
             סילבוסים, סיכומים, הגדרות ומשפטים ממוינים לפי שנים וסמסטרים
           </p>
-        </div>
+        </motion.div>
 
-        <div className="relative group">
+        <motion.div variants={heroItemVariants} className="relative group">
           <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-zinc-400" />
+            <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-cyan-400 transition-colors" />
           </div>
           <input
             type="text"
-            className="block w-full pl-4 pr-11 sm:pr-12 py-3 sm:py-4 border border-zinc-700/60 rounded-xl sm:rounded-2xl leading-5 bg-zinc-850 bg-zinc-800/70 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-sm sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100 min-h-[48px]"
+            className="block w-full pl-4 pr-11 sm:pr-12 py-3 sm:py-4 border border-zinc-700/60 rounded-xl sm:rounded-2xl leading-5 bg-zinc-850 bg-zinc-800/70 backdrop-blur-xl placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/80 focus:border-cyan-500 text-sm sm:text-lg transition-all shadow-sm group-hover:shadow-md text-zinc-100 min-h-[48px]"
             placeholder="חיפוש קורסים לפי שם או מספר..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-        </div>
+        </motion.div>
 
         {isAdmin && (
-          <div className="mt-4 flex justify-end">
+          <motion.div variants={heroItemVariants} className="mt-4 flex justify-end">
             <button 
               onClick={() => setIsCourseModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 active:bg-cyan-800 transition-colors shadow-sm cursor-pointer font-medium text-sm min-h-[44px]"
@@ -290,10 +376,10 @@ const Home = () => {
               <Plus className="w-4 h-4" />
               הוסף קורס
             </button>
-          </div>
+          </motion.div>
         )}
 
-        <div className="mt-8 sm:mt-10 space-y-10 sm:space-y-12 pb-24 sm:pb-32">
+        <motion.div variants={heroItemVariants} className="mt-8 sm:mt-10 space-y-10 sm:space-y-12 pb-24 sm:pb-32">
           {errorMsg && (
             <div className="p-4 bg-red-900/30 backdrop-blur-md border border-red-800 rounded-xl text-red-400 text-sm">
               <p className="font-bold mb-1">שגיאת התחברות ל-Appwrite:</p>
@@ -301,41 +387,47 @@ const Home = () => {
             </div>
           )}
 
-          {user && (
-            <section>
-              <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
-                הקורסים שלי
-              </h2>
-              <GroupedCourseSection
-                groups={enrolledGroups}
-                enrolledCourseIds={enrolledCourseIds}
-                enrollments={enrollments}
-                toggleEnrollment={toggleEnrollment}
-                isEnrolledList={true}
-                emptyMessage={searchNormalized ? 'לא נמצאו קורסים רשומים התואמים לחיפוש.' : 'אין קורסים רשומים עדיין.'}
-                user={user}
-              />
-            </section>
-          )}
+          {isInitialLoading ? (
+            <CourseSkeleton />
+          ) : (
+            <>
+              {user && (
+                <section>
+                  <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+                    הקורסים שלי
+                  </h2>
+                  <GroupedCourseSection
+                    groups={enrolledGroups}
+                    enrolledCourseIds={enrolledCourseIds}
+                    enrollments={enrollments}
+                    toggleEnrollment={toggleEnrollment}
+                    isEnrolledList={true}
+                    emptyMessage={searchNormalized ? 'לא נמצאו קורסים רשומים התואמים לחיפוש.' : 'אין קורסים רשומים עדיין.'}
+                    user={user}
+                  />
+                </section>
+              )}
 
-          <section>
-            <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400" />
-              {user ? 'קורסים נוספים' : 'כל הקורסים'}
-            </h2>
-            <GroupedCourseSection
-              groups={allCourseGroups}
-              enrolledCourseIds={enrolledCourseIds}
-              enrollments={enrollments}
-              toggleEnrollment={toggleEnrollment}
-              isEnrolledList={false}
-              emptyMessage={searchNormalized ? 'לא נמצאו קורסים התואמים את החיפוש.' : 'אין קורסים זמינים.'}
-              user={user}
-            />
-          </section>
-        </div>
-      </div>
+              <section>
+                <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 text-zinc-100 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-400" />
+                  {user ? 'קורסים נוספים' : 'כל הקורסים'}
+                </h2>
+                <GroupedCourseSection
+                  groups={allCourseGroups}
+                  enrolledCourseIds={enrolledCourseIds}
+                  enrollments={enrollments}
+                  toggleEnrollment={toggleEnrollment}
+                  isEnrolledList={false}
+                  emptyMessage={searchNormalized ? 'לא נמצאו קורסים התואמים את החיפוש.' : 'אין קורסים זמינים.'}
+                  user={user}
+                />
+              </section>
+            </>
+          )}
+        </motion.div>
+      </motion.div>
 
       <CourseModal 
         isOpen={isCourseModalOpen} 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useThemeStore } from '../store/useThemeStore';
 import { LogOut, User, Mail, AlertTriangle } from 'lucide-react';
@@ -9,19 +9,12 @@ import { DisclaimerModal } from './DisclaimerModal';
 
 export const Layout = () => {
   const { user, logout, isLoading } = useAuthStore();
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     // Force dark mode
     document.documentElement.classList.add('dark');
   }, []);
-
-  useEffect(() => {
-    if (!isLoading && !user && !localStorage.getItem('isGuest') && location.pathname !== '/login') {
-      navigate('/login');
-    }
-  }, [user, isLoading, navigate, location.pathname]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-50">טוען...</div>;

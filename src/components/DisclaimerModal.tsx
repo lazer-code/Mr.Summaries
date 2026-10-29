@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, X, Monitor, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuthStore } from '../store/useAuthStore';
 import { useLocation } from 'react-router-dom';
 
 export const DisclaimerModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dismissedRef = useRef(false);
-  const { user } = useAuthStore();
   const location = useLocation();
-  const isGuest = localStorage.getItem('isGuest') === 'true';
 
   useEffect(() => {
     // Clear any persistent storage to ensure the disclaimer opens every time the site is loaded
@@ -19,10 +16,10 @@ export const DisclaimerModal = () => {
   useEffect(() => {
     const isAuthPage = location.pathname === '/login';
     
-    if (!dismissedRef.current && !isAuthPage && (user || isGuest)) {
+    if (!dismissedRef.current && !isAuthPage) {
       setIsOpen(true);
     }
-  }, [user, isGuest, location.pathname]);
+  }, [location.pathname]);
 
   const handleClose = () => {
     dismissedRef.current = true;

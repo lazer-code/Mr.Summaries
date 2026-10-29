@@ -138,12 +138,11 @@ const Login = () => {
           <button 
             type="button"
             onClick={() => {
-              localStorage.setItem('isGuest', 'true');
               navigate('/');
             }}
             className="text-xs sm:text-sm text-zinc-400 hover:text-cyan-400 transition-colors py-1.5 min-h-[40px] inline-flex items-center cursor-pointer"
           >
-            המשך כאורח
+            חזרה לדף הבית
           </button>
         </div>
       </div>
