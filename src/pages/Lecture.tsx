@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { ArrowRight, Edit2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { motion } from 'motion/react';
 import { NestedMarkdown } from '../components/NestedMarkdown';
 import { ContentModal } from '../components/ContentModal';
@@ -11,6 +12,7 @@ import { PdfTextRenderer } from '../components/PdfTextRenderer';
 const Lecture = () => {
   const { id } = useParams();
   const { isAdmin } = useAuthStore();
+  const { setBreadcrumbs, cacheCourse, courseCache } = useBreadcrumbStore();
   const [lecture, setLecture] = useState<any>(null);
   const [content, setContent] = useState<string>('');
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -74,6 +76,33 @@ const Lecture = () => {
   useEffect(() => {
     fetchLecture();
   }, [fetchLecture]);
+
+  useEffect(() => {
+    if (!lecture) return;
+
+    const courseObj = Array.isArray(lecture.courses) ? lecture.courses[0] : lecture.courses;
+    const courseId = typeof courseObj === 'string' ? courseObj : courseObj?.$id || '';
+    const courseObjName = typeof courseObj === 'object' ? courseObj?.name : '';
+
+    const courseName = courseObjName || (courseId ? courseCache[courseId]?.name : '') || 'קורס';
+
+    if (courseId && courseObjName) {
+      cacheCourse(courseId, { name: courseObjName, number: courseObj?.number });
+    } else if (courseId && !courseCache[courseId]) {
+      api.getCourse(courseId).then((c) => {
+        if (c && c.name) {
+          cacheCourse(courseId, { name: c.name, number: c.number });
+        }
+      }).catch(() => {});
+    }
+
+    setBreadcrumbs([
+      { label: 'דף הבית', to: '/', icon: 'home' },
+      { label: courseName, to: courseId ? `/course/${courseId}` : undefined, icon: 'course' },
+      { label: 'הגדרות ומשפטים', to: courseId ? `/course/${courseId}?tab=lectures` : undefined, icon: 'lecture' },
+      { label: lecture.name, icon: 'lecture' },
+    ]);
+  }, [lecture, courseCache, setBreadcrumbs, cacheCourse]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">טוען...</div>;

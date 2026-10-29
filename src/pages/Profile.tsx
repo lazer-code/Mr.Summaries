@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { api } from '../services/api';
 import { User, Mail, Shield, BookOpen, Trash2, Save } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -7,6 +8,7 @@ import { Link } from 'react-router-dom';
 
 const Profile = () => {
   const { user, isAdmin, updateName, updateEmail } = useAuthStore();
+  const { setBreadcrumbs } = useBreadcrumbStore();
   
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -17,6 +19,13 @@ const Profile = () => {
   const [message, setMessage] = useState({ text: '', type: '' });
   
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: 'דף הבית', to: '/', icon: 'home' },
+      { label: 'פרופיל אישי', icon: 'profile' },
+    ]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     if (user) {

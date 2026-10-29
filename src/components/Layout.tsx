@@ -2,19 +2,27 @@ import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useThemeStore } from '../store/useThemeStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { LogOut, User, Mail, AlertTriangle } from 'lucide-react';
 import { InteractiveBackground } from './InteractiveBackground';
 import { AnimatePresence, motion } from 'motion/react';
 import { DisclaimerModal } from './DisclaimerModal';
+import { Breadcrumbs } from './Breadcrumbs';
 
 export const Layout = () => {
   const { user, logout, isLoading } = useAuthStore();
+  const { setBreadcrumbs } = useBreadcrumbStore();
   const location = useLocation();
 
   useEffect(() => {
     // Force dark mode
     document.documentElement.classList.add('dark');
   }, []);
+
+  useEffect(() => {
+    // Clear custom breadcrumbs on route change so new page derivation or page effect takes over
+    setBreadcrumbs(null);
+  }, [location.pathname, location.search, setBreadcrumbs]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-50">טוען...</div>;
@@ -65,6 +73,7 @@ export const Layout = () => {
         </div>
       </header>
       <main className="container mx-auto px-3 sm:px-4 pt-20 sm:pt-24 pb-16 sm:pb-20 relative flex-grow max-w-full">
+        <Breadcrumbs />
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

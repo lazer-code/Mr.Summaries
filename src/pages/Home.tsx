@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Search, BookOpen, Plus, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { CourseModal } from '../components/CourseModal';
 import { 
   formatSemester, 
@@ -227,6 +228,7 @@ const heroItemVariants: Variants = {
 
 const Home = () => {
   const { user, isAdmin } = useAuthStore();
+  const { cacheCourse } = useBreadcrumbStore();
   const [courses, setCourses] = useState<any[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
@@ -240,7 +242,15 @@ const Home = () => {
     try {
       setErrorMsg(null);
       const res = await api.getCourses();
-      setCourses(res.documents || []);
+      const docs = res.documents || [];
+      setCourses(docs);
+
+      // Pre-seed breadcrumbs course cache
+      docs.forEach((c: any) => {
+        if (c.$id && c.name) {
+          cacheCourse(c.$id, { name: c.name, number: c.number });
+        }
+      });
 
       // Fetch enrollments if user is logged in
       if (user) {

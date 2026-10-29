@@ -3,11 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Search, FileText, Plus, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { ContentModal } from '../components/ContentModal';
 
 const Summaries = () => {
   const { id } = useParams();
   const { isAdmin } = useAuthStore();
+  const { setBreadcrumbs, cacheCourse } = useBreadcrumbStore();
   const [summaries, setSummaries] = useState<any[]>([]);
   const [course, setCourse] = useState<any>(null);
   const [search, setSearch] = useState('');
@@ -36,6 +38,16 @@ const Summaries = () => {
   useEffect(() => {
     fetchSummaries();
   }, [fetchSummaries]);
+
+  useEffect(() => {
+    if (!course) return;
+    cacheCourse(course.$id, { name: course.name, number: course.number });
+    setBreadcrumbs([
+      { label: 'דף הבית', to: '/', icon: 'home' },
+      { label: course.name, to: `/course/${course.$id}`, icon: 'course' },
+      { label: 'סיכומים', icon: 'summaries' },
+    ]);
+  }, [course, setBreadcrumbs, cacheCourse]);
 
   const filteredSummaries = useMemo(() => {
     return summaries

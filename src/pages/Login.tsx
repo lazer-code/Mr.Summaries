@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, ArrowRight, UserPlus } from 'lucide-react';
 
@@ -11,7 +12,15 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, signup, user } = useAuthStore();
+  const { setBreadcrumbs } = useBreadcrumbStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: 'דף הבית', to: '/', icon: 'home' },
+      { label: isLogin ? 'התחברות' : 'הרשמה', icon: 'login' },
+    ]);
+  }, [isLogin, setBreadcrumbs]);
 
   useEffect(() => {
     if (user) {

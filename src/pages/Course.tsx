@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { BookOpen, FileText, List, Bookmark, Edit2, BookmarkPlus, BookmarkCheck, Search, Plus } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBreadcrumbStore } from '../store/useBreadcrumbStore';
 import { motion } from 'motion/react';
 import { NestedMarkdown } from '../components/NestedMarkdown';
 import { CourseModal } from '../components/CourseModal';
@@ -16,6 +17,7 @@ const Course = () => {
   const { id } = useParams();
   const location = useLocation();
   const { user, isAdmin } = useAuthStore();
+  const { setBreadcrumbs, cacheCourse } = useBreadcrumbStore();
   const [course, setCourse] = useState<any>(null);
   const [content, setContent] = useState<string>('');
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -34,6 +36,32 @@ const Course = () => {
   const deferredSearch = useDeferredValue(search);
 
   const currentTab = new URLSearchParams(location.search).get('tab') || 'overview';
+
+  useEffect(() => {
+    if (!course) return;
+    cacheCourse(course.$id, { name: course.name, number: course.number });
+
+    const tabLabels: Record<string, { label: string; icon: 'summaries' | 'lecture' | 'example' }> = {
+      summaries: { label: 'סיכומים', icon: 'summaries' },
+      lectures: { label: 'הגדרות ומשפטים', icon: 'lecture' },
+      examples: { label: 'דוגמאות', icon: 'example' },
+      questions: { label: 'שאלות ותשובות', icon: 'lecture' },
+      files: { label: 'קבצים', icon: 'summaries' },
+    };
+
+    if (currentTab && currentTab !== 'overview' && tabLabels[currentTab]) {
+      setBreadcrumbs([
+        { label: 'דף הבית', to: '/', icon: 'home' },
+        { label: course.name, to: `/course/${course.$id}`, icon: 'course' },
+        { label: tabLabels[currentTab].label, icon: tabLabels[currentTab].icon },
+      ]);
+    } else {
+      setBreadcrumbs([
+        { label: 'דף הבית', to: '/', icon: 'home' },
+        { label: course.name, icon: 'course' },
+      ]);
+    }
+  }, [course, currentTab, setBreadcrumbs, cacheCourse]);
 
   const fetchCourse = useCallback(async () => {
     try {
