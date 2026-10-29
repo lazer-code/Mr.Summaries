@@ -109,29 +109,112 @@ const decodeSvgDataUri = (dataUri: string): string | null => {
   }
 };
 
-const getSvgDimensions = (svgStr: string): { width?: number; height?: number } => {
+interface ParsedImageMeta {
+  cleanAlt: string;
+  targetWidth?: number | string;
+  targetHeight?: number | string;
+}
+
+const parseMarkdownImageAlt = (rawAlt?: string): ParsedImageMeta => {
+  if (!rawAlt || typeof rawAlt !== 'string') {
+    return { cleanAlt: '' };
+  }
+
+  const trimmed = rawAlt.trim();
+
+  // Pipe syntax: e.g. "1.svg|700", "title|700x450", "|700", "image.png|80%"
+  if (trimmed.includes('|')) {
+    const lastPipeIndex = trimmed.lastIndexOf('|');
+    const cleanAlt = trimmed.slice(0, lastPipeIndex).trim();
+    const sizePart = trimmed.slice(lastPipeIndex + 1).trim();
+
+    // Size can be "700", "700px", "700x450", "80%"
+    const dimMatch = sizePart.match(/^(\d+(?:%|px)?)(?:x(\d+(?:%|px)?))?$/i);
+    if (dimMatch) {
+      const rawW = dimMatch[1];
+      const rawH = dimMatch[2];
+      const targetWidth = rawW.endsWith('%') || rawW.endsWith('px') ? rawW : parseFloat(rawW);
+      const targetHeight = rawH ? (rawH.endsWith('%') || rawH.endsWith('px') ? rawH : parseFloat(rawH)) : undefined;
+      return { cleanAlt, targetWidth, targetHeight };
+    }
+    return { cleanAlt };
+  }
+
+  // Size only: e.g. "700" or "700x450"
+  const sizeOnlyMatch = trimmed.match(/^(\d+)(?:x(\d+))?$/);
+  if (sizeOnlyMatch) {
+    return {
+      cleanAlt: '',
+      targetWidth: parseFloat(sizeOnlyMatch[1]),
+      targetHeight: sizeOnlyMatch[2] ? parseFloat(sizeOnlyMatch[2]) : undefined,
+    };
+  }
+
+  return { cleanAlt: trimmed };
+};
+
+interface SvgDimensions {
+  width?: number;
+  height?: number;
+  viewBoxWidth?: number;
+  viewBoxHeight?: number;
+  aspectRatio?: number;
+}
+
+const getSvgDimensions = (svgStr: string): SvgDimensions => {
   if (!svgStr) return {};
   try {
     const svgTagMatch = svgStr.match(/<svg\b([^>]*)>/i);
     if (!svgTagMatch) return {};
     const attrs = svgTagMatch[1];
 
-    const widthMatch = attrs.match(/\bwidth\s*=\s*["']?([\d.]+)(px)?["']?/i);
-    const heightMatch = attrs.match(/\bheight\s*=\s*["']?([\d.]+)(px)?["']?/i);
+    // Check raw width / height attributes
+    const rawWidthMatch = attrs.match(/\bwidth\s*=\s*["']?([^"'\s>]+)["']?/i);
+    const rawHeightMatch = attrs.match(/\bheight\s*=\s*["']?([^"'\s>]+)["']?/i);
 
-    let width = widthMatch ? parseFloat(widthMatch[1]) : undefined;
-    let height = heightMatch ? parseFloat(heightMatch[1]) : undefined;
+    const rawWidth = rawWidthMatch ? rawWidthMatch[1].trim() : '';
+    const rawHeight = rawHeightMatch ? rawHeightMatch[1].trim() : '';
 
-    if ((!width || !height) && attrs.includes('viewBox')) {
-      const vbMatch = attrs.match(/\bviewBox\s*=\s*["']\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)["']/i);
-      if (vbMatch) {
-        const vbWidth = parseFloat(vbMatch[3]);
-        const vbHeight = parseFloat(vbMatch[4]);
-        if (!width && vbWidth) width = vbWidth;
-        if (!height && vbHeight) height = vbHeight;
-      }
+    // Ignore percentage widths like "100%" when determining intrinsic pixel size
+    let width: number | undefined;
+    if (rawWidth && !rawWidth.includes('%')) {
+      const num = parseFloat(rawWidth);
+      if (!isNaN(num) && num > 0) width = num;
     }
-    return { width, height };
+
+    let height: number | undefined;
+    if (rawHeight && !rawHeight.includes('%')) {
+      const num = parseFloat(rawHeight);
+      if (!isNaN(num) && num > 0) height = num;
+    }
+
+    let viewBoxWidth: number | undefined;
+    let viewBoxHeight: number | undefined;
+
+    const vbMatch = attrs.match(/\bviewBox\s*=\s*["']\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)["']/i);
+    if (vbMatch) {
+      const w = parseFloat(vbMatch[3]);
+      const h = parseFloat(vbMatch[4]);
+      if (!isNaN(w) && w > 0) viewBoxWidth = w;
+      if (!isNaN(h) && h > 0) viewBoxHeight = h;
+    }
+
+    // If explicit pixel width is absent (e.g. was 100% or omitted), use viewBox
+    if (width === undefined && viewBoxWidth !== undefined) {
+      width = viewBoxWidth;
+    }
+    if (height === undefined && viewBoxHeight !== undefined) {
+      height = viewBoxHeight;
+    }
+
+    const aspectRatio =
+      width && height
+        ? width / height
+        : viewBoxWidth && viewBoxHeight
+        ? viewBoxWidth / viewBoxHeight
+        : undefined;
+
+    return { width, height, viewBoxWidth, viewBoxHeight, aspectRatio };
   } catch {
     return {};
   }
@@ -145,6 +228,8 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
   // Prevent passing AST 'node' or non-standard props to DOM elements
   const { node, ...cleanProps } = props || {};
 
+  const parsedAlt = useMemo(() => parseMarkdownImageAlt(alt), [alt]);
+
   const svgContent = useMemo(() => {
     return decodeSvgDataUri(src);
   }, [src]);
@@ -152,6 +237,30 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
   const dimensions = useMemo(() => {
     return getSvgDimensions(svgContent || '');
   }, [svgContent]);
+
+  const explicitWidth = cleanProps.width || parsedAlt.targetWidth || dimensions.width;
+  const explicitHeight = cleanProps.height || parsedAlt.targetHeight;
+
+  const styleObj = useMemo(() => {
+    const styles: React.CSSProperties = {
+      maxWidth: '100%',
+    };
+
+    if (explicitWidth) {
+      styles.width = typeof explicitWidth === 'number' ? `${explicitWidth}px` : explicitWidth;
+    }
+
+    if (explicitHeight) {
+      styles.height = typeof explicitHeight === 'number' ? `${explicitHeight}px` : explicitHeight;
+    } else if (dimensions.aspectRatio) {
+      styles.aspectRatio = `${dimensions.viewBoxWidth || dimensions.width} / ${dimensions.viewBoxHeight || dimensions.height}`;
+      styles.height = 'auto';
+    } else {
+      styles.height = 'auto';
+    }
+
+    return styles;
+  }, [explicitWidth, explicitHeight, dimensions]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -171,10 +280,10 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
   }
 
   return (
-    <span className="not-prose my-3 block text-center">
+    <span className="not-prose my-4 block text-center">
       <span
         onClick={() => setIsOpen(true)}
-        className="group relative inline-block cursor-zoom-in rounded-xl border border-zinc-800/80 hover:border-cyan-500/50 bg-zinc-900/60 p-1.5 transition-all max-w-full shadow-sm hover:shadow-cyan-500/10"
+        className="group relative inline-block cursor-zoom-in rounded-xl border border-zinc-800/80 hover:border-cyan-500/50 bg-zinc-900/60 p-1.5 transition-all max-w-full shadow-sm hover:shadow-cyan-500/10 text-center"
         title="לחץ להגדלה"
         role="button"
         tabIndex={0}
@@ -187,32 +296,20 @@ const MarkdownImage = ({ src, alt, ...props }: any) => {
       >
         {svgContent ? (
           <span
-            className="svg-renderer inline-block max-w-full overflow-hidden [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:block [&>svg]:mx-auto"
-            style={
-              dimensions.width && dimensions.height
-                ? {
-                    width: `${dimensions.width}px`,
-                    height: `${dimensions.height}px`,
-                    maxWidth: '100%',
-                  }
-                : dimensions.width
-                ? {
-                    width: `${dimensions.width}px`,
-                    maxWidth: '100%',
-                  }
-                : undefined
-            }
+            className="svg-renderer block max-w-full overflow-hidden [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:block [&>svg]:mx-auto"
+            style={styleObj}
             dir="ltr"
             dangerouslySetInnerHTML={{ __html: svgContent }}
           />
         ) : (
           <img
             src={src}
-            alt={alt || ''}
+            alt={parsedAlt.cleanAlt || ''}
             loading="eager"
             decoding="sync"
             onError={() => setHasError(true)}
-            className="max-w-full h-auto object-contain rounded-lg block mx-auto"
+            style={styleObj}
+            className="object-contain rounded-lg block mx-auto"
             {...cleanProps}
           />
         )}
